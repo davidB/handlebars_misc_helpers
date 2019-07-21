@@ -7,11 +7,15 @@ description = "A collection of helpers for handlebars (rust)."
 readme = "README.md"
 license = "CC0-1.0"
 #keywords = [""]
-#repository = "https://github.com/davidB/handlebars_misc_helpers"
-#homepage = "https://github.com/davidB/handlebars_misc_helpers"
+repository = "https://github.com/davidB/handlebars_misc_helpers"
+homepage = "https://github.com/davidB/handlebars_misc_helpers"
 exclude = ["/azure-pipelines.yml", "/docs/**", "/scripts", ".gitignore", "/tests/**"]
 
-#[dependencies]
+[dependencies]
+Inflector = "^0.11.4"
+failure = "^0.1.5"
+handlebars = "^2.0.1"
+reqwest = "^0.9.19"
 
 [dev-dependencies]
 spectral = "0.6.0"
