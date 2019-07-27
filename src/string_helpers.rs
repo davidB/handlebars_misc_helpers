@@ -31,3 +31,33 @@ pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
     handlebars_register_inflector!(handlebars, to_singular);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tests::assert_helpers;
+
+    #[test]
+    fn test_register_string_helpers() -> Result<(), Error> {
+        assert_helpers(
+            "Hello foo-bars",
+            vec![
+                ("to_lower_case", "hello foo-bars"),
+                ("to_upper_case", "HELLO FOO-BARS"),
+                ("to_camel_case", "helloFooBars"),
+                ("to_pascal_case", "HelloFooBars"),
+                ("to_snake_case", "hello_foo_bars"),
+                ("to_screaming_snake_case", "HELLO_FOO_BARS"),
+                ("to_kebab_case", "hello-foo-bars"),
+                ("to_train_case", "Hello-Foo-Bars"),
+                ("to_sentence_case", "Hello foo bars"),
+                ("to_title_case", "Hello Foo Bars"),
+                ("to_class_case", "HelloFooBar"),
+                ("to_table_case", "hello_foo_bars"),
+                ("to_plural", "bars"),
+                ("to_singular", "bar"),
+            ],
+        )?;
+        Ok(())
+    }
+}

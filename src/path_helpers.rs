@@ -34,3 +34,57 @@ pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tests::assert_helpers;
+
+    #[test]
+    fn test_register_path_helpers() -> Result<(), Error> {
+        assert_helpers(
+            "/hello/bar/foo",
+            vec![
+                ("file_name", "foo"),
+                ("parent", "/hello/bar"),
+                ("extension", ""),
+                ("canonicalize", ""),
+            ],
+        )?;
+        assert_helpers(
+            "foo",
+            vec![("file_name", "foo"), ("parent", ""), ("extension", "")],
+        )?;
+        assert_helpers(
+            "bar/foo",
+            vec![("file_name", "foo"), ("parent", "bar"), ("extension", "")],
+        )?;
+        assert_helpers(
+            "bar/foo.txt",
+            vec![
+                ("file_name", "foo.txt"),
+                ("parent", "bar"),
+                ("extension", "txt"),
+            ],
+        )?;
+        assert_helpers(
+            "./foo",
+            vec![
+                ("file_name", "foo"),
+                ("parent", "."),
+                ("extension", ""),
+                ("canonicalize", ""),
+            ],
+        )?;
+        assert_helpers(
+            "/hello/bar/../foo",
+            vec![
+                ("file_name", "foo"),
+                ("parent", "/hello/bar/.."),
+                ("extension", ""),
+                ("canonicalize", ""),
+            ],
+        )?;
+        Ok(())
+    }
+}

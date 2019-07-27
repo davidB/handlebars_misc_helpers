@@ -13,10 +13,15 @@ homepage = "https://github.com/davidB/handlebars_misc_helpers"
 exclude = ["/azure-pipelines.yml", "/docs/**", "/scripts", ".gitignore", "/tests/**"]
 
 [dependencies]
-Inflector = "^0.11.4"
 failure = "^0.1.5"
 handlebars = "^2.0.1"
-reqwest = "^0.9.19"
+Inflector = { version = "^0.11.4", optional = true }
+reqwest = { version = "^0.9.19", optional = true }
 
 [dev-dependencies]
 spectral = "0.6.0"
+
+[features]
+default = [ "string", "http" ]
+string = [ "Inflector" ]
+http = [ "reqwest" ]

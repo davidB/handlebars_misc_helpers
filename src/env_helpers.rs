@@ -23,3 +23,19 @@ pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
     handlebars.register_helper("env_var", Box::new(env_var));
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tests::assert_helpers;
+
+    #[test]
+    fn test_register_env_helpers() -> Result<(), Error> {
+        let key = "KEY";
+        std::env::set_var(key, "VALUE");
+
+        assert_helpers(key, vec![("env_var", "VALUE")])?;
+        assert_helpers("A_DO_NOT_EXIST_ENVVAR", vec![("env_var", "")])?;
+        Ok(())
+    }
+}
