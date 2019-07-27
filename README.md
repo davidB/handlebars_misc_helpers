@@ -76,3 +76,13 @@ Helper able to get environment variables.
 helper_name | usage
 -- | --
 env_var | `env_var "HOME"`
+
+## JSON
+
+Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax.
+
+usage| output
+-- | --
+`{{ json_query "foo" "{}" }}` | `null`
+`{{ json_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `{"bar":{"baz":true}}`
+`{{ json_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `true`
