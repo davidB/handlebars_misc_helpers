@@ -1,6 +1,6 @@
-use failure::Error;
 use handlebars::{handlebars_helper, Handlebars};
 use inflector::Inflector;
+use std::error::Error;
 
 #[macro_export]
 macro_rules! handlebars_register_inflector {
@@ -10,7 +10,7 @@ macro_rules! handlebars_register_inflector {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
+pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     handlebars_helper!(to_lower_case: |v: str| v.to_lowercase());
     handlebars.register_helper("to_lower_case", Box::new(to_lower_case));
 
@@ -38,7 +38,7 @@ mod tests {
     use crate::tests::assert_helpers;
 
     #[test]
-    fn test_register_string_helpers() -> Result<(), Error> {
+    fn test_register_string_helpers() -> Result<(), Box<Error>> {
         assert_helpers(
             "Hello foo-bars",
             vec![

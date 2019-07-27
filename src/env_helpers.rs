@@ -1,5 +1,5 @@
-use failure::Error;
 use handlebars::{handlebars_helper, Handlebars};
+use std::error::Error;
 
 fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     match std::env::var(key.as_ref()) {
@@ -18,7 +18,7 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
+pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     handlebars_helper!(env_var: |v: str| env_var_fct(&v));
     handlebars.register_helper("env_var", Box::new(env_var));
     Ok(())
@@ -30,7 +30,7 @@ mod tests {
     use crate::tests::assert_helpers;
 
     #[test]
-    fn test_register_env_helpers() -> Result<(), Error> {
+    fn test_register_env_helpers() -> Result<(), Box<Error>> {
         let key = "KEY";
         std::env::set_var(key, "VALUE");
 

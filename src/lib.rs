@@ -1,5 +1,7 @@
-use failure::Error;
+#![deny(unsafe_code)]
+
 use handlebars::Handlebars;
+use std::error::Error;
 
 pub mod env_helpers;
 #[cfg(feature = "http")]
@@ -8,18 +10,18 @@ pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
 
-pub fn new_hbs() -> Result<Handlebars, Error> {
+pub fn new_hbs() -> Result<Handlebars, Box<Error>> {
     let mut handlebars = Handlebars::new();
     setup_handlebars(&mut handlebars)?;
     Ok(handlebars)
 }
 
-pub fn setup_handlebars(handlebars: &mut Handlebars) -> Result<(), Error> {
+pub fn setup_handlebars(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     handlebars.set_strict_mode(true);
     register_all(handlebars)
 }
 
-pub fn register_all(handlebars: &mut Handlebars) -> Result<(), Error> {
+pub fn register_all(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     #[cfg(feature = "string")]
     string_helpers::register(handlebars)?;
     #[cfg(feature = "http")]
@@ -38,7 +40,7 @@ mod tests {
     pub(crate) fn assert_helpers(
         input: &str,
         helper_expected: Vec<(&str, &str)>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), Box<Error>> {
         let mut vs: HashMap<String, String> = HashMap::new();
         vs.insert("var".into(), input.into());
         let hbs = new_hbs()?;
@@ -52,7 +54,7 @@ mod tests {
     }
 
     #[test]
-    fn test_chain_of_helpers_with_1_param() -> Result<(), Error> {
+    fn test_chain_of_helpers_with_1_param() -> Result<(), Box<Error>> {
         let vs: HashMap<String, String> = HashMap::new();
         let hbs = new_hbs()?;
         let tmpl = r#"{{ to_upper_case (to_singular "Hello foo-bars")}}"#.to_owned();

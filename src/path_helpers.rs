@@ -1,5 +1,5 @@
-use failure::Error;
 use handlebars::{handlebars_helper, Handlebars};
+use std::error::Error;
 use std::path::{Path, PathBuf};
 
 fn expand(s: &str) -> PathBuf {
@@ -13,7 +13,7 @@ fn expand(s: &str) -> PathBuf {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
+pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     handlebars_helper!(parent: |v: str| {
         expand(&v).parent().and_then(|s| s.to_str()).unwrap_or("").to_owned()
     });
@@ -41,7 +41,7 @@ mod tests {
     use crate::tests::assert_helpers;
 
     #[test]
-    fn test_register_path_helpers() -> Result<(), Error> {
+    fn test_register_path_helpers() -> Result<(), Box<Error>> {
         assert_helpers(
             "/hello/bar/foo",
             vec![

@@ -1,6 +1,6 @@
-use failure::Error;
 use handlebars::{handlebars_helper, Handlebars};
 use reqwest;
+use std::error::Error;
 
 fn http_get_fct<T: AsRef<str>>(url: T) -> String {
     match reqwest::get(url.as_ref()).and_then(|mut r| r.text()) {
@@ -19,7 +19,7 @@ fn http_get_fct<T: AsRef<str>>(url: T) -> String {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Error> {
+pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     handlebars_helper!(http_get: |v: str| http_get_fct(&v));
     handlebars.register_helper("http_get", Box::new(http_get));
 
