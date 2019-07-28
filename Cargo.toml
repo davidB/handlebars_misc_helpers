@@ -14,12 +14,12 @@ exclude = ["/azure-pipelines.yml", "/docs/**", "/scripts", ".gitignore", "/tests
 
 [dependencies]
 handlebars = "^2.0.1"
+snafu = "0.4.3"
 Inflector = { version = "^0.11.4", optional = true }
 jmespath = { version = "^0.2.0", optional = true }
 reqwest = { version = "^0.9.19", optional = true }
 serde = { version = "^1", optional = true }
 serde_json = { version = "^1", optional = true }
-snafu = {version = "0.4.3", optional = true }
 
 
 [dev-dependencies]
@@ -29,4 +29,4 @@ spectral = "0.6.0"
 default = [ "string", "http", "json" ]
 string = [ "Inflector" ]
 http = [ "reqwest" ]
-json = [ "jmespath", "serde", "serde_json", "snafu" ]
+json = [ "jmespath", "serde", "serde_json" ]

@@ -1,8 +1,10 @@
 #![deny(unsafe_code)]
 
 use handlebars::Handlebars;
+use snafu::Snafu;
 use std::error::Error;
 
+pub mod assign_helpers;
 pub mod env_helpers;
 #[cfg(feature = "http")]
 pub mod http_helpers;
@@ -11,6 +13,16 @@ pub mod json_helpers;
 pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
+
+#[derive(Debug, Snafu)]
+enum HelperError {
+    #[snafu(display("missing param {} '{}' of '{}'", position, name, helper_signature))]
+    MissingParameter {
+        position: usize,
+        name: String,
+        helper_signature: String,
+    },
+}
 
 pub fn new_hbs() -> Result<Handlebars, Box<Error>> {
     let mut handlebars = Handlebars::new();
@@ -32,6 +44,7 @@ pub fn register_all(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
     env_helpers::register(handlebars)?;
     #[cfg(feature = "json")]
     json_helpers::register(handlebars)?;
+    assign_helpers::register(handlebars)?;
     Ok(())
 }
 

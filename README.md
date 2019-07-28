@@ -86,3 +86,15 @@ usage| output
 `{{ json_query "foo" "{}" }}` | `null`
 `{{ json_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `{"bar":{"baz":true}}`
 `{{ json_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `true`
+
+## Assign
+
+Helper able to assign (to set) a variable to use later in the template.
+
+usage| output
+-- | --
+`{{ assign "foo" "{}" }}` | ``
+`{{ assign "foo" "{}" }}{{ foo }}` | `{}`
+`{{ assign "foo" "hello world" }}{{ foo }}` | `hello world`
+`{{ assign "foo" {} }}{{ foo }}` | `[object]`
+`{{ assign "foo" {"bar": 33} }}{{ foo }}` | `[object]`

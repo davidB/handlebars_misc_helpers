@@ -1,3 +1,4 @@
+use crate::HelperError::MissingParameter;
 use handlebars::Context;
 use handlebars::Handlebars;
 use handlebars::Helper;
@@ -45,11 +46,19 @@ fn json_query_fct(
     let expr_param = h
         .param(0)
         .and_then(|v| v.value().as_str())
-        .ok_or(RenderError::new("missing param 0 'expr' of json_query"))?;
+        .ok_or(RenderError::with(MissingParameter {
+            position: 0,
+            name: "expr".to_owned(),
+            helper_signature: "json_query expr data".to_owned(),
+        }))?;
     let data_param = h
         .param(1)
         .and_then(|v| v.value().as_str())
-        .ok_or(RenderError::new("missing param 1 'data' of json_query"))?;
+        .ok_or(RenderError::with(MissingParameter {
+            position: 1,
+            name: "data".to_owned(),
+            helper_signature: "json_query expr data".to_owned(),
+        }))?;
     let json_str: Value = serde_json::from_str(data_param).map_err(|e| RenderError::with(e))?; //new("failed to parse 'data' into json"))?;
     let result = json_query(expr_param, json_str).map_err(|e| RenderError::with(e))?;
     out.write(&result)?;
