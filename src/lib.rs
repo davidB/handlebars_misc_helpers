@@ -83,6 +83,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "string")]
     fn test_chain_of_helpers_with_1_param() -> Result<(), Box<Error>> {
         let vs: HashMap<String, String> = HashMap::new();
         let hbs = new_hbs()?;
