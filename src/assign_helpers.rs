@@ -2,11 +2,11 @@ use crate::HelperError::MissingParameter;
 use handlebars::Context;
 use handlebars::Handlebars;
 use handlebars::Helper;
+use handlebars::HelperDef;
 use handlebars::HelperResult;
 use handlebars::Output;
 use handlebars::RenderContext;
 use handlebars::RenderError;
-use std::error::Error;
 
 fn assign_fct(
     h: &Helper,
@@ -37,15 +37,17 @@ fn assign_fct(
     Ok(())
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
-    handlebars.register_helper("assign", Box::new(assign_fct));
-    Ok(())
+pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+    vec![{ handlebars.register_helper("assign", Box::new(assign_fct)) }]
+        .into_iter()
+        .flatten()
+        .collect()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::tests::assert_renders;
+    use std::error::Error;
 
     #[test]
     fn test_helper_assign() -> Result<(), Box<Error>> {

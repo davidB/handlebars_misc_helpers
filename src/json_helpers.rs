@@ -2,6 +2,7 @@ use crate::HelperError::MissingParameter;
 use handlebars::Context;
 use handlebars::Handlebars;
 use handlebars::Helper;
+use handlebars::HelperDef;
 use handlebars::HelperResult;
 use handlebars::Output;
 use handlebars::RenderContext;
@@ -12,7 +13,6 @@ use serde::Serialize;
 use serde_json;
 use serde_json::Value;
 use snafu::{ResultExt, Snafu};
-use std::error::Error;
 
 #[derive(Debug, Snafu)]
 enum JsonError {
@@ -65,9 +65,11 @@ fn json_query_fct(
     Ok(())
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
-    handlebars.register_helper("json_query", Box::new(json_query_fct));
-    Ok(())
+pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+    vec![{ handlebars.register_helper("json_query", Box::new(json_query_fct)) }]
+        .into_iter()
+        .flatten()
+        .collect()
 }
 
 #[cfg(test)]
@@ -75,6 +77,7 @@ mod tests {
     use super::*;
     use crate::tests::assert_renders;
     use spectral::prelude::*;
+    use std::error::Error;
 
     #[test]
     fn test_search_object_field() -> Result<(), Box<Error>> {

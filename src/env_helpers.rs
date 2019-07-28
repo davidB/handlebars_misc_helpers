@@ -1,5 +1,5 @@
+use handlebars::HelperDef;
 use handlebars::{handlebars_helper, Handlebars};
-use std::error::Error;
 
 fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     match std::env::var(key.as_ref()) {
@@ -18,16 +18,20 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
-    handlebars_helper!(env_var: |v: str| env_var_fct(&v));
-    handlebars.register_helper("env_var", Box::new(env_var));
-    Ok(())
+pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+    vec![{
+        handlebars_helper!(env_var: |v: str| env_var_fct(&v));
+        handlebars.register_helper("env_var", Box::new(env_var))
+    }]
+    .into_iter()
+    .flatten()
+    .collect()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::tests::assert_helpers;
+    use std::error::Error;
 
     #[test]
     fn test_register_env_helpers() -> Result<(), Box<Error>> {

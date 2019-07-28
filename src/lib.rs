@@ -1,8 +1,8 @@
 #![deny(unsafe_code)]
 
 use handlebars::Handlebars;
+use handlebars::HelperDef;
 use snafu::Snafu;
-use std::error::Error;
 
 pub mod assign_helpers;
 pub mod env_helpers;
@@ -24,28 +24,32 @@ enum HelperError {
     },
 }
 
-pub fn new_hbs() -> Result<Handlebars, Box<Error>> {
+pub fn new_hbs() -> Handlebars {
     let mut handlebars = Handlebars::new();
-    setup_handlebars(&mut handlebars)?;
-    Ok(handlebars)
+    setup_handlebars(&mut handlebars);
+    handlebars
 }
 
-pub fn setup_handlebars(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
+pub fn setup_handlebars(handlebars: &mut Handlebars) {
     handlebars.set_strict_mode(true);
-    register_all(handlebars)
+    register(handlebars);
 }
 
-pub fn register_all(handlebars: &mut Handlebars) -> Result<(), Box<Error>> {
-    #[cfg(feature = "string")]
-    string_helpers::register(handlebars)?;
-    #[cfg(feature = "http")]
-    http_helpers::register(handlebars)?;
-    path_helpers::register(handlebars)?;
-    env_helpers::register(handlebars)?;
-    #[cfg(feature = "json")]
-    json_helpers::register(handlebars)?;
-    assign_helpers::register(handlebars)?;
-    Ok(())
+pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+    vec![
+        #[cfg(feature = "string")]
+        string_helpers::register(handlebars),
+        #[cfg(feature = "http")]
+        http_helpers::register(handlebars),
+        path_helpers::register(handlebars),
+        env_helpers::register(handlebars),
+        #[cfg(feature = "json")]
+        json_helpers::register(handlebars),
+        assign_helpers::register(handlebars),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
 }
 
 #[cfg(test)]
@@ -53,6 +57,7 @@ mod tests {
     use super::*;
     use spectral::prelude::*;
     use std::collections::HashMap;
+    use std::error::Error;
 
     pub(crate) fn assert_helpers(
         input: &str,
@@ -60,7 +65,7 @@ mod tests {
     ) -> Result<(), Box<Error>> {
         let mut vs: HashMap<String, String> = HashMap::new();
         vs.insert("var".into(), input.into());
-        let hbs = new_hbs()?;
+        let hbs = new_hbs();
         for sample in helper_expected {
             let tmpl = format!("{{{{ {} var}}}}", sample.0);
             assert_that!(hbs.render_template(&tmpl, &vs)?)
@@ -72,7 +77,7 @@ mod tests {
 
     pub(crate) fn assert_renders(samples_expected: Vec<(&str, &str)>) -> Result<(), Box<Error>> {
         let vs: HashMap<String, String> = HashMap::new();
-        let hbs = new_hbs()?;
+        let hbs = new_hbs();
         for sample in samples_expected {
             let tmpl = sample.0;
             assert_that!(hbs.render_template(&tmpl, &vs)?)
@@ -86,7 +91,7 @@ mod tests {
     #[cfg(feature = "string")]
     fn test_chain_of_helpers_with_1_param() -> Result<(), Box<Error>> {
         let vs: HashMap<String, String> = HashMap::new();
-        let hbs = new_hbs()?;
+        let hbs = new_hbs();
         let tmpl = r#"{{ to_upper_case (to_singular "Hello foo-bars")}}"#.to_owned();
         let actual = hbs.render_template(&tmpl, &vs)?;
         assert_that!(&actual).is_equal_to("BAR".to_string());
