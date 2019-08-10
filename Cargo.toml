@@ -7,7 +7,8 @@ description = "A collection of helpers for handlebars (rust)."
 readme = "README.md"
 license = "CC0-1.0"
 keywords = ["handlebars"]
-categories = ["Template engine", "Value formatting"]
+#see https://crates.io/category_slugs
+categories = ["template-engine", "value-formatting"]
 repository = "https://github.com/davidB/handlebars_misc_helpers"
 homepage = "https://github.com/davidB/handlebars_misc_helpers"
 exclude = ["/azure-pipelines.yml", "/docs/**", "/scripts", ".gitignore", "/tests/**"]
