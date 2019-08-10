@@ -77,6 +77,72 @@ helper_name | usage
 -- | --
 env_var | `env_var "HOME"`
 
+Specials environment variables are predefined (from [std::env::consts - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
+
+<table>
+    <thead>
+        <tr>
+            <th>variable</th>
+            <th>possible values</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><code>"ARCH"</code></td><ul>
+            <li>x86</li>
+            <li>x86_64</li>
+            <li>arm</li>
+            <li>aarch64</li>
+            <li>mips</li>
+            <li>mips64</li>
+            <li>powerpc</li>
+            <li>powerpc64</li>
+            <li>s390x</li>
+            <li>sparc64</li>
+        </ul></td></tr>
+        <tr><td><code>"DLL_EXTENSION"</code></td><ul>
+            <li>so</li>
+            <li>dylib</li>
+            <li>dll</li>
+        </ul></td></tr>
+        <tr><td><code>"DLL_PREFIX"</code></td><ul>
+            <li>lib</li>
+            <li>"" (an empty string)</li>
+        </ul></td></tr>
+        <tr><td><code>"DLL_SUFFIX"</code></td><ul>
+            <li>.so</li>
+            <li>.dylib</li>
+            <li>.dll</li>
+        </ul></td></tr>
+        <tr><td><code>"EXE_EXTENSION"</code></td><ul>
+            <li>exe</li>
+            <li>"" (an empty string)</li>
+        </ul></td></tr>
+        <tr><td><code>"EXE_SUFFIX"</code></td><ul>
+            <li>.exe</li>
+            <li>.nexe</li>
+            <li>.pexe</li>
+            <li>"" (an empty string)</li>
+        </ul></td></tr>
+        <tr><td><code>"FAMILY"</code></td><ul>
+            <li>unix</li>
+            <li>windows</li>
+        </ul></td></tr>
+        <tr><td><code>"OS"</code></td><ul>
+            <li>linux</li>
+            <li>macos</li>
+            <li>ios</li>
+            <li>freebsd</li>
+            <li>dragonfly</li>
+            <li>netbsd</li>
+            <li>openbsd</li>
+            <li>solaris</li>
+            <li>android</li>
+            <li>windows</li>
+        </ul></td></tr>
+    </tbody>
+</table>
+
+
 ## JSON
 
 Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax.

@@ -2,18 +2,30 @@ use handlebars::HelperDef;
 use handlebars::{handlebars_helper, Handlebars};
 
 fn env_var_fct<T: AsRef<str>>(key: T) -> String {
-    match std::env::var(key.as_ref()) {
-        Ok(s) => s,
-        Err(e) => {
-            //TODO better error handler
-            //use slog::warn;
-            //warn!(ctx.logger, "helper: http_get"; "url" => format!("{:?}", url), "err" => format!("{:?}", e))
-            eprintln!(
-                "helper: env_var failed for key '{:?}' with error '{:?}'",
-                key.as_ref(),
-                e
-            );
-            "".to_owned()
+    let key = key.as_ref();
+    match key {
+        "ARCH" => std::env::consts::ARCH.to_owned(),
+        "DLL_EXTENSION" => std::env::consts::DLL_EXTENSION.to_owned(),
+        "DLL_PREFIX" => std::env::consts::DLL_PREFIX.to_owned(),
+        "DLL_SUFFIX" => std::env::consts::DLL_SUFFIX.to_owned(),
+        "EXE_EXTENSION" => std::env::consts::EXE_EXTENSION.to_owned(),
+        "EXE_SUFFIX" => std::env::consts::EXE_SUFFIX.to_owned(),
+        "FAMILY" => std::env::consts::FAMILY.to_owned(),
+        "OS" => std::env::consts::OS.to_owned(),
+        _ => {
+            match std::env::var(key) {
+                Ok(s) => s,
+                Err(e) => {
+                    //TODO better error handler
+                    //use slog::warn;
+                    //warn!(ctx.logger, "helper: http_get"; "url" => format!("{:?}", url), "err" => format!("{:?}", e))
+                    eprintln!(
+                        "helper: env_var failed for key '{:?}' with error '{:?}'",
+                        key, e
+                    );
+                    "".to_owned()
+                }
+            }
         }
     }
 }
@@ -40,6 +52,16 @@ mod tests {
 
         assert_helpers(key, vec![("env_var", "VALUE")])?;
         assert_helpers("A_DO_NOT_EXIST_ENVVAR", vec![("env_var", "")])?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_env_consts() -> Result<(), Box<Error>> {
+        let key = "OS";
+        let os = std::env::consts::OS;
+        dbg!(os);
+        assert_ne!(os, "");
+        assert_helpers(key, vec![("env_var", os)])?;
         Ok(())
     }
 }
