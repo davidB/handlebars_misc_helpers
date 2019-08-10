@@ -77,7 +77,7 @@ helper_name | usage
 -- | --
 env_var | `env_var "HOME"`
 
-Specials environment variables are predefined (from [std::env::consts - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
+Specials environment variables are predefined (some of them come from [std::env::consts - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
 
 <table>
     <thead>
@@ -139,6 +139,12 @@ Specials environment variables are predefined (from [std::env::consts - Rust](ht
             <li>android</li>
             <li>windows</li>
         </ul></td></tr>
+        <tr><td><code>"USERNAME"</code></td><td>try to find the current username, in the order:<ol>
+            <li>environment variable <code>"USERNAME"</code></li>
+            <li>environment variable <code>"username"</code></li>
+            <li>environment variable <code>"USER"</code></li>
+            <li>environment variable <code>"user"</code></li>
+        </ol></td></tr>
     </tbody>
 </table>
 

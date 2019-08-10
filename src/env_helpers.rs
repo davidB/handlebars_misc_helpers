@@ -12,6 +12,11 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
         "EXE_SUFFIX" => std::env::consts::EXE_SUFFIX.to_owned(),
         "FAMILY" => std::env::consts::FAMILY.to_owned(),
         "OS" => std::env::consts::OS.to_owned(),
+        "USERNAME" => std::env::var("USERNAME")
+            .or_else(|_| std::env::var("username"))
+            .or_else(|_| std::env::var("USER"))
+            .or_else(|_| std::env::var("user"))
+            .unwrap_or("noname".to_owned()),
         _ => {
             match std::env::var(key) {
                 Ok(s) => s,
