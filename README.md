@@ -87,7 +87,7 @@ Specials environment variables are predefined (from [std::env::consts - Rust](ht
         </tr>
     </thead>
     <tbody>
-        <tr><td><code>"ARCH"</code></td><ul>
+        <tr><td><code>"ARCH"</code></td><td><ul>
             <li>x86</li>
             <li>x86_64</li>
             <li>arm</li>
@@ -99,35 +99,35 @@ Specials environment variables are predefined (from [std::env::consts - Rust](ht
             <li>s390x</li>
             <li>sparc64</li>
         </ul></td></tr>
-        <tr><td><code>"DLL_EXTENSION"</code></td><ul>
+        <tr><td><code>"DLL_EXTENSION"</code></td><td><ul>
             <li>so</li>
             <li>dylib</li>
             <li>dll</li>
         </ul></td></tr>
-        <tr><td><code>"DLL_PREFIX"</code></td><ul>
+        <tr><td><code>"DLL_PREFIX"</code></td><td><ul>
             <li>lib</li>
             <li>"" (an empty string)</li>
         </ul></td></tr>
-        <tr><td><code>"DLL_SUFFIX"</code></td><ul>
+        <tr><td><code>"DLL_SUFFIX"</code></td><td><ul>
             <li>.so</li>
             <li>.dylib</li>
             <li>.dll</li>
         </ul></td></tr>
-        <tr><td><code>"EXE_EXTENSION"</code></td><ul>
+        <tr><td><code>"EXE_EXTENSION"</code></td><td><ul>
             <li>exe</li>
             <li>"" (an empty string)</li>
         </ul></td></tr>
-        <tr><td><code>"EXE_SUFFIX"</code></td><ul>
+        <tr><td><code>"EXE_SUFFIX"</code></td><td><ul>
             <li>.exe</li>
             <li>.nexe</li>
             <li>.pexe</li>
             <li>"" (an empty string)</li>
         </ul></td></tr>
-        <tr><td><code>"FAMILY"</code></td><ul>
+        <tr><td><code>"FAMILY"</code></td><td><ul>
             <li>unix</li>
             <li>windows</li>
         </ul></td></tr>
-        <tr><td><code>"OS"</code></td><ul>
+        <tr><td><code>"OS"</code></td><td><ul>
             <li>linux</li>
             <li>macos</li>
             <li>ios</li>
