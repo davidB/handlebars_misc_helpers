@@ -40,33 +40,35 @@ see [Handlebars templating language](https://handlebarsjs.com/)
 
 ## String transformation
 
-for the same input: `"Hello foo-bars"`
-
-helper_name | example out
--- | --
-`to_lower_case` | `"hello foo-bars"`
-`to_upper_case` | `"HELLO FOO-BARS"`
-`to_camel_case` | `"helloFooBars"`
-`to_pascal_case` | `"HelloFooBars"`
-`to_snake_case` | `"hello_foo_bars"`
-`to_screaming_snake_case` | `"HELLO_FOO_BARS"`
-`to_kebab_case` | `"hello-foo-bars"`
-`to_train_case` | `"Hello-Foo-Bars"`
-`to_sentence_case` | `"Hello foo bars"`
-`to_title_case` | `"Hello Foo Bars"`
-`to_class_case` | `"HelloFooBar"`
-`to_table_case` | `"hello_foo_bars"`
-`to_plural` | `"bars"`
-`to_singular` | `"bar"`
+helper signature | usage sample | sample out
+-- | -- | --
+`replace s:String from:String to:String` | `replace "Hello old" "old" "new"` | `"Hello new"`
+`to_lower_case s:String` | `to_lower_case "Hello foo-bars"` | `"hello foo-bars"`
+`to_upper_case s:String` | `to_upper_case "Hello foo-bars"` | `"HELLO FOO-BARS"`
+`to_camel_case s:String` | `to_camel_case "Hello foo-bars"` | `"helloFooBars"`
+`to_pascal_case s:String` | `to_pascal_case "Hello foo-bars"` | `"HelloFooBars"`
+`to_snake_case s:String` | `to_snake_case "Hello foo-bars"` | `"hello_foo_bars"`
+`to_screaming_snake_case s:String` | `to_screaming_snake_case "Hello foo-bars"` | `"HELLO_FOO_BARS"`
+`to_kebab_case s:String` | `to_kebab_case "Hello foo-bars"` | `"hello-foo-bars"`
+`to_train_case s:String` | `to_train_case "Hello foo-bars"` | `"Hello-Foo-Bars"`
+`to_sentence_case s:String` | `to_sentence_case "Hello foo-bars"` | `"Hello foo" bars`
+`to_title_case s:String` | `to_title_case "Hello foo-bars"` | `"Hello Foo Bars"`
+`to_class_case s:String` | `to_class_case "Hello foo-bars"` | `"HelloFooBar"`
+`to_table_case s:String` | `to_table_case "Hello foo-bars"` | `"hello_foo_bars"`
+`to_plural s:String` | `to_plural "Hello foo-bars"` | `"bars"`
+`to_singular s:String` | `to_singular "Hello foo-bars"` | `"bar"`
+`trim s:String` | `trim " foo "` | `"foo"`
+`trim_start s:String` | `trim_start " foo "` | `"foo "`
+`trim_end s:String` | `trim_end " foo "` | `" foo"`
 
 ## Http content
 
 Helper able to render body response from an http request.
 
-helper_name | usage
+helper signature | usage sample
 -- | --
-`http_get` | `http_get "http://hello/..."`
-`gitignore_io` | `gitignore_io "rust"`
+`http_get url:String` | `http_get "http://hello/..."`
+`gitignore_io templates:String` | `gitignore_io "rust,visualstudiocode"`
 
 ## Path extraction
 
