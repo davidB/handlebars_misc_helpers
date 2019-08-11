@@ -27,6 +27,17 @@ To chain helpers, use parenthesis:
 
 see [Handlebars templating language](https://handlebarsjs.com/)
 
+<!-- TOC depthFrom:2 -->
+
+- [String transformation](#string-transformation)
+- [Http content](#http-content)
+- [Path extraction](#path-extraction)
+- [Environment variable](#environment-variable)
+- [JSON](#json)
+- [Assign](#assign)
+
+<!-- /TOC -->
+
 ## String transformation
 
 for the same input: `"Hello foo-bars"`
@@ -151,13 +162,20 @@ Specials environment variables are predefined (some of them come from [std::env:
 
 ## JSON
 
-Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax.
+helpers:
+
+- `json_query query:String data:Json`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`.
+- `json_str_query query:String data:String`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`.
+- `json_to_str data:Json`: convert a json into a string (no pretty).
+- `json_to_str data:String`: convert(parse) a string into a json.
 
 usage| output
 -- | --
-`{{ json_query "foo" "{}" }}` | `null`
-`{{ json_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `{"bar":{"baz":true}}`
-`{{ json_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `true`
+`{{ json_query "foo" {} }}` | ``
+`{{ json_to_str ( json_query "foo" {"foo":{"bar":{"baz":true}}} ) }}` | `{"bar":{"baz":true}}`
+`{{ json_to_str ( json_query "foo" (str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) ) }}` | `{"bar":{"baz":true}}
+`{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `{"bar":{"baz":true}}`
+`{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `true`
 
 ## Assign
 
