@@ -16,7 +16,7 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
             .or_else(|_| std::env::var("username"))
             .or_else(|_| std::env::var("USER"))
             .or_else(|_| std::env::var("user"))
-            .unwrap_or("noname".to_owned()),
+            .unwrap_or_else(|_| "noname".to_owned()),
         _ => {
             match std::env::var(key) {
                 Ok(s) => s,

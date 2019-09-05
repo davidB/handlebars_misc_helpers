@@ -30,13 +30,13 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
     serde_json::to_value(res.as_ref()).context(ToJsonValueError {})
 }
 
-handlebars_helper!(str_to_json_fct: |data: str| { let v: Json = serde_json::from_str(data).map_err(|e| RenderError::with(e))?; v});
-handlebars_helper!(json_to_str_fct: |data: Json| serde_json::to_string(data).map_err(|e| RenderError::with(e))?);
-handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(|e| RenderError::with(e))?);
+handlebars_helper!(str_to_json_fct: |data: str| { let v: Json = serde_json::from_str(data).map_err(RenderError::with)?; v});
+handlebars_helper!(json_to_str_fct: |data: Json| serde_json::to_string(data).map_err(RenderError::with)?);
+handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(RenderError::with)?);
 handlebars_helper!(json_str_query_fct: |expr: str, data: str| {
-    let v: Json = serde_json::from_str(data).map_err(|e| RenderError::with(e))?;
-    json_query(expr, v).map_err(|e| RenderError::with(e))
-    .and_then(|v| serde_json::to_string(&v).map_err(|e| RenderError::with(e)))?
+    let v: Json = serde_json::from_str(data).map_err(RenderError::with)?;
+    json_query(expr, v).map_err(RenderError::with)
+    .and_then(|v| serde_json::to_string(&v).map_err(RenderError::with))?
 });
 
 pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
