@@ -13,7 +13,6 @@ pub mod json_helpers;
 pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
-pub mod truth_helpers;
 
 #[derive(Debug, Snafu)]
 enum HelperError {
@@ -47,7 +46,6 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
         #[cfg(feature = "json")]
         json_helpers::register(handlebars),
         assign_helpers::register(handlebars),
-        truth_helpers::register(handlebars),
     ]
     .into_iter()
     .flatten()
