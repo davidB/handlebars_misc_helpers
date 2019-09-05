@@ -13,7 +13,7 @@ fn assign_fct(
     _: &Handlebars,
     _: &Context,
     rc: &mut RenderContext,
-    _: &mut Output,
+    _: &mut dyn Output,
 ) -> HelperResult {
     // get parameter from helper or throw an error
     let name = h
@@ -50,7 +50,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_helper_assign() -> Result<(), Box<Error>> {
+    fn test_helper_assign() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (r##"{{ assign "foo" "{}" }}"##, r##""##),
             (r##"{{ assign "foo" "{}" }}{{ foo }}"##, r##"{}"##),

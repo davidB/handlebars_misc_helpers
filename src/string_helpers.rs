@@ -63,7 +63,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_register_string_helpers() -> Result<(), Box<Error>> {
+    fn test_register_string_helpers() -> Result<(), Box<dyn Error>> {
         assert_helpers(
             "Hello foo-bars",
             vec![
@@ -87,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_trim() -> Result<(), Box<Error>> {
+    fn test_helper_trim() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (r##"{{ trim "foo" }}"##, r##"foo"##),
             (r##"{{ trim "  foo" }}"##, r##"foo"##),
@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_trim_start() -> Result<(), Box<Error>> {
+    fn test_helper_trim_start() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (r##"{{ trim_start "foo" }}"##, r##"foo"##),
             (r##"{{ trim_start "  foo" }}"##, r##"foo"##),
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_trim_end() -> Result<(), Box<Error>> {
+    fn test_helper_trim_end() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (r##"{{ trim_end "foo" }}"##, r##"foo"##),
             (r##"{{ trim_end "  foo" }}"##, r##"  foo"##),
@@ -120,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_replace() -> Result<(), Box<Error>> {
+    fn test_helper_replace() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![(r##"{{ replace "foo" "oo" "aa"}}"##, r##"faa"##)])?;
         Ok(())
     }

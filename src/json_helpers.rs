@@ -59,7 +59,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_search_object_field() -> Result<(), Box<Error>> {
+    fn test_search_object_field() -> Result<(), Box<dyn Error>> {
         let json: Json = serde_json::from_str(r##"{"foo":{"bar":{"baz":true}}}"##)?;
         let result = json_query("foo.bar.baz", json)?;
         assert_that!(result).is_equal_to(Json::Bool(true));
@@ -67,7 +67,7 @@ mod tests {
     }
 
     #[test]
-    fn test_search_path_in_empty() -> Result<(), Box<Error>> {
+    fn test_search_path_in_empty() -> Result<(), Box<dyn Error>> {
         for v in vec!["{}", "[]", "null", "\"\""] {
             let json: Json = serde_json::from_str(v)?;
             let result = json_query("foo.bar.baz", json)?;
@@ -77,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_json_to_str() -> Result<(), Box<Error>> {
+    fn test_helper_json_to_str() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (r##"{{ json_to_str {} }}"##, r##"{}"##),
             (
@@ -93,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_json_query() -> Result<(), Box<Error>> {
+    fn test_helper_json_query() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (r##"{{ json_query "foo" {} }}"##, r##""##),
             (
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_helper_json_str_query() -> Result<(), Box<Error>> {
+    fn test_helper_json_str_query() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
             (
                 r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}"##,

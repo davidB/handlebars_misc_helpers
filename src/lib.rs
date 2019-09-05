@@ -62,7 +62,7 @@ mod tests {
     pub(crate) fn assert_helpers(
         input: &str,
         helper_expected: Vec<(&str, &str)>,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         let mut vs: HashMap<String, String> = HashMap::new();
         vs.insert("var".into(), input.into());
         let hbs = new_hbs();
@@ -75,7 +75,7 @@ mod tests {
         Ok(())
     }
 
-    pub(crate) fn assert_renders(samples_expected: Vec<(&str, &str)>) -> Result<(), Box<Error>> {
+    pub(crate) fn assert_renders(samples_expected: Vec<(&str, &str)>) -> Result<(), Box<dyn Error>> {
         let vs: HashMap<String, String> = HashMap::new();
         let hbs = new_hbs();
         for sample in samples_expected {
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "string")]
-    fn test_chain_of_helpers_with_1_param() -> Result<(), Box<Error>> {
+    fn test_chain_of_helpers_with_1_param() -> Result<(), Box<dyn Error>> {
         let vs: HashMap<String, String> = HashMap::new();
         let hbs = new_hbs();
         let tmpl = r#"{{ to_upper_case (to_singular "Hello foo-bars")}}"#.to_owned();

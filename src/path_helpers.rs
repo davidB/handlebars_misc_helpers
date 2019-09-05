@@ -49,7 +49,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_register_path_helpers() -> Result<(), Box<Error>> {
+    fn test_register_path_helpers() -> Result<(), Box<dyn Error>> {
         assert_helpers(
             "/hello/bar/foo",
             vec![

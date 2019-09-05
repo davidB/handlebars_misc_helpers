@@ -51,7 +51,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_register_env_helpers() -> Result<(), Box<Error>> {
+    fn test_register_env_helpers() -> Result<(), Box<dyn Error>> {
         let key = "KEY";
         std::env::set_var(key, "VALUE");
 
@@ -61,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn test_env_consts() -> Result<(), Box<Error>> {
+    fn test_env_consts() -> Result<(), Box<dyn Error>> {
         let key = "OS";
         let os = std::env::consts::OS;
         dbg!(os);
