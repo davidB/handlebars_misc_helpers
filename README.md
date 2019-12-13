@@ -35,7 +35,7 @@ see [Handlebars templating language](https://handlebarsjs.com/)
   - [Http content](#http-content)
   - [Path extraction](#path-extraction)
   - [Environment variable](#environment-variable)
-  - [JSON](#json)
+  - [JSON &amp; YAML &amp; TOML](#json-amp-yaml-amp-toml)
   - [Assign](#assign)
 
 <!-- /TOC -->
@@ -163,7 +163,7 @@ Specials environment variables are predefined (some of them come from [std::env:
     </tbody>
 </table>
 
-## JSON
+## JSON & YAML & TOML
 
 helpers:
 
