@@ -369,20 +369,4 @@ mod tests {
         ])?;
         Ok(())
     }
-
-    // #[test]
-    // fn test_helper_json_to_str_yaml() -> Result<(), Box<dyn Error>> {
-    //     assert_renders(vec![
-    //         (r##"{{ json_to_str_yaml {} }}"##, r##"{}"##),
-    //         (
-    //             r##"{{ json_to_str_yaml {"foo":{"bar":{"baz":true}}} }}"##,
-    //             r##"{"foo":{"bar":{"baz":true}}}"##,
-    //         ),
-    //         (
-    //             r##"{{ json_to_str_yaml ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) }}"##,
-    //             r##"{"foo":{"bar":{"baz":true}}}"##,
-    //         ),
-    //     ])?;
-    //     Ok(())
-    // }
 }

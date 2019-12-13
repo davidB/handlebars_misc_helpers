@@ -1,7 +1,7 @@
+use attohttpc;
 use handlebars::HelperDef;
 use handlebars::RenderError;
 use handlebars::{handlebars_helper, Handlebars};
-use attohttpc;
 
 fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, attohttpc::Error> {
     attohttpc::get(url.as_ref()).send()?.text()
