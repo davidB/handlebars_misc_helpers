@@ -189,7 +189,7 @@ The optional requested `format`, is the format of the string with data:
 | `{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}`                             | `bar:\n  baz: true\n`           |
 | `{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" format="json") format="yaml"}}` | `foo:\n  bar:\n    baz: true\n` |
 
-Note: YAML & TOML content are used as input and output format for json data. So capabalities are limited to what json support (eg. no datetime type like in TOML).
+Note: YAML & TOML content are used as input and output format for json data. So capabilities are limited to what json support (eg. no date-time type like in TOML).
 
 ## Assign
 
