@@ -213,8 +213,8 @@ mod tests {
     }
 
     fn assert_data_format_write_eq_read(f: DataFormat, data: &str) -> Result<(), Box<dyn Error>> {
-        let actual = f.write_string(&f.read_string(data)?)?;
-        assert_that!(&actual).is_equal_to(data.to_owned());
+        let actual = f.write_string(&f.read_string(data)?)?.replace("\r\n", "\n");
+        assert_that!(&actual).is_equal_to(data.to_owned().replace("\r\n", "\n"));
         Ok(())
     }
 
@@ -283,7 +283,7 @@ mod tests {
                       "baz": true
                     }
                   }
-                }"##),
+                }"##).replace("\r\n", "\n").as_ref(),
             ),
         ])?;
         Ok(())
@@ -333,7 +333,9 @@ mod tests {
                     "
                 bar:
                   baz: true"
-                ),
+                )
+                .replace("\r\n", "\n")
+                .as_ref(),
             ),
             (
                 r##"{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
@@ -341,7 +343,9 @@ mod tests {
                     "
                 bar:
                   baz: true"
-                ),
+                )
+                .replace("\r\n", "\n")
+                .as_ref(),
             ),
             (
                 r##"{{ json_str_query "foo.bar.baz" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
