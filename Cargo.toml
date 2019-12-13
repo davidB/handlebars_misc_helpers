@@ -21,13 +21,16 @@ Inflector = { version = "^0.11", optional = true }
 jmespath = { version = "^0.2", optional = true }
 serde = { version = "^1", optional = true }
 serde_json = { version = "^1", optional = true }
+serde_yaml = { version = "^0.8", optional = true }
+toml = { version = "^0.5", optional = true }
 
 
 [dev-dependencies]
 spectral = "0.6.0"
+indoc = "0.3"
 
 [features]
 default = [ "string", "http", "json" ]
 string = [ "Inflector" ]
 http = [ "attohttpc" ]
-json = [ "jmespath", "serde", "serde_json" ]
+json = [ "jmespath", "serde", "serde_json", "serde_yaml", "toml" ]

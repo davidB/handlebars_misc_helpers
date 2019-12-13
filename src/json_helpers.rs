@@ -1,13 +1,16 @@
-use handlebars::handlebars_helper;
-use handlebars::Handlebars;
-use handlebars::HelperDef;
-use handlebars::RenderError;
+use handlebars::{
+    handlebars_helper, Context, Handlebars, Helper, HelperDef, RenderContext, RenderError,
+    ScopedJson,
+};
 use jmespath;
 use jmespath::ToJmespath;
 use serde::Serialize;
 use serde_json;
 use serde_json::Value as Json;
+use serde_yaml;
 use snafu::{ResultExt, Snafu};
+use std::str::FromStr;
+use toml;
 
 #[derive(Debug, Snafu)]
 enum JsonError {
@@ -16,8 +19,64 @@ enum JsonError {
         source: jmespath::JmespathError,
     },
     ToJsonValueError {
+        input: String,
         source: serde_json::error::Error,
     },
+    DataFormatUnknownError {
+        format: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+enum DataFormat {
+    Json,
+    JsonPretty,
+    Yaml,
+    Toml,
+    TomlPretty,
+}
+
+impl FromStr for DataFormat {
+    type Err = JsonError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "json" => Ok(Self::Json),
+            "json_pretty" => Ok(Self::JsonPretty),
+            "yaml" => Ok(Self::Yaml),
+            "toml" => Ok(Self::Toml),
+            "toml_pretty" => Ok(Self::TomlPretty),
+            _ => Err(JsonError::DataFormatUnknownError {
+                format: s.to_string(),
+            }),
+        }
+    }
+}
+
+impl DataFormat {
+    fn read_string(&self, data: &str) -> Result<Json, RenderError> {
+        match self {
+            DataFormat::Json | DataFormat::JsonPretty => {
+                serde_json::from_str(&data).map_err(RenderError::with)
+            }
+            DataFormat::Yaml => serde_yaml::from_str(&data).map_err(RenderError::with),
+            DataFormat::Toml | DataFormat::TomlPretty => {
+                toml::from_str(&data).map_err(RenderError::with)
+            }
+        }
+    }
+
+    fn write_string(&self, data: &Json) -> Result<String, RenderError> {
+        match self {
+            DataFormat::Json => serde_json::to_string(data).map_err(RenderError::with),
+            DataFormat::JsonPretty => serde_json::to_string_pretty(data).map_err(RenderError::with),
+            DataFormat::Yaml => serde_yaml::to_string(data)
+                .map_err(RenderError::with)
+                .map(|s| s.trim_start_matches("---\n").to_string()),
+            DataFormat::Toml => toml::to_string(data).map_err(RenderError::with),
+            DataFormat::TomlPretty => toml::to_string_pretty(data).map_err(RenderError::with),
+        }
+    }
 }
 
 fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, JsonError> {
@@ -27,17 +86,93 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
         .context(JsonQueryError {
             expression: expr.as_ref().to_string(),
         })?;
-    serde_json::to_value(res.as_ref()).context(ToJsonValueError {})
+    serde_json::to_value(res.as_ref()).context(ToJsonValueError {
+        input: format!("{:?}", res),
+    })
 }
 
-handlebars_helper!(str_to_json_fct: |data: str| { let v: Json = serde_json::from_str(data).map_err(RenderError::with)?; v});
-handlebars_helper!(json_to_str_fct: |data: Json| serde_json::to_string(data).map_err(RenderError::with)?);
+fn find_data_format<'reg: 'rc, 'rc>(h: &Helper<'reg, 'rc>) -> Result<DataFormat, RenderError> {
+    let param = h
+        .hash_get("format")
+        .and_then(|v| v.value().as_str())
+        .unwrap_or("json");
+    DataFormat::from_str(param).map_err(RenderError::with)
+}
+
+fn find_str_param<'reg: 'rc, 'rc>(
+    pos: usize,
+    h: &Helper<'reg, 'rc>,
+) -> Result<String, RenderError> {
+    h.param(pos)
+        .ok_or_else(|| RenderError::new(format!("param {} (the string) not found", pos)))
+        .and_then(|v| {
+            serde_json::from_value::<String>(v.value().clone()).map_err(RenderError::with)
+        })
+}
+
+#[allow(non_camel_case_types)]
+pub struct str_to_json_fct;
+
+impl HelperDef for str_to_json_fct {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'reg, 'rc>,
+        _: &'reg Handlebars,
+        _: &'rc Context,
+        _: &mut RenderContext,
+    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        let format = find_data_format(h)?;
+        let data: String = find_str_param(0, h)?;
+        let result = format.read_string(&data)?;
+        Ok(Some(ScopedJson::Derived(result)))
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct json_to_str_fct;
+
+impl HelperDef for json_to_str_fct {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'reg, 'rc>,
+        _: &'reg Handlebars,
+        _: &'rc Context,
+        _: &mut RenderContext,
+    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        let format = find_data_format(h)?;
+        let data = h
+            .param(0)
+            .ok_or(RenderError::new("param 0 (the json) not found"))
+            .map(|v| v.value())?;
+        let result = format.write_string(&data)?;
+        Ok(Some(ScopedJson::Derived(Json::String(result))))
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct json_str_query_fct;
+
+impl HelperDef for json_str_query_fct {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'reg, 'rc>,
+        _: &'reg Handlebars,
+        _: &'rc Context,
+        _: &mut RenderContext,
+    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        let format = find_data_format(h)?;
+        let expr = find_str_param(0, h)?;
+        let data_str = find_str_param(1, h)?;
+        let data = format.read_string(&data_str)?;
+        let result = json_query(expr, data)
+            .map_err(RenderError::with)
+            .and_then(|v| format.write_string(&v))?;
+        dbg!(&result);
+        Ok(Some(ScopedJson::Derived(Json::String(result))))
+    }
+}
+
 handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(RenderError::with)?);
-handlebars_helper!(json_str_query_fct: |expr: str, data: str| {
-    let v: Json = serde_json::from_str(data).map_err(RenderError::with)?;
-    json_query(expr, v).map_err(RenderError::with)
-    .and_then(|v| serde_json::to_string(&v).map_err(RenderError::with))?
-});
 
 pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
     vec![
@@ -55,6 +190,7 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
 mod tests {
     use super::*;
     use crate::tests::assert_renders;
+    use indoc::indoc;
     use spectral::prelude::*;
     use std::error::Error;
 
@@ -76,6 +212,57 @@ mod tests {
         Ok(())
     }
 
+    fn assert_data_format_write_eq_read(f: DataFormat, data: &str) -> Result<(), Box<dyn Error>> {
+        let actual = f.write_string(&f.read_string(data)?)?;
+        assert_that!(&actual).is_equal_to(data.to_owned());
+        Ok(())
+    }
+
+    #[test]
+    fn test_data_format_symmetry() -> Result<(), Box<dyn Error>> {
+        assert_data_format_write_eq_read(DataFormat::Json, r##"{"foo":{"bar":{"baz":true}}}"##)?;
+        assert_data_format_write_eq_read(
+            DataFormat::JsonPretty,
+            indoc!(
+                r##"{
+                  "foo": {
+                    "bar": {
+                      "baz": true
+                    }
+                  }
+                }"##
+            ),
+        )?;
+        assert_data_format_write_eq_read(
+            DataFormat::Yaml,
+            indoc!(
+                r##"
+                foo:
+                  bar:
+                    baz: true"##
+            ),
+        )?;
+        assert_data_format_write_eq_read(
+            DataFormat::Toml,
+            indoc!(
+                r##"
+                [foo.bar]
+                baz = true
+                "##
+            ),
+        )?;
+        assert_data_format_write_eq_read(
+            DataFormat::TomlPretty,
+            indoc!(
+                r##"
+                [foo.bar]
+                baz = true
+                "##
+            ),
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn test_helper_json_to_str() -> Result<(), Box<dyn Error>> {
         assert_renders(vec![
@@ -87,6 +274,16 @@ mod tests {
             (
                 r##"{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) }}"##,
                 r##"{"foo":{"bar":{"baz":true}}}"##,
+            ),
+            (
+                r##"{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) format="json_pretty"}}"##,
+                indoc!(r##"{
+                  "foo": {
+                    "bar": {
+                      "baz": true
+                    }
+                  }
+                }"##),
             ),
         ])?;
         Ok(())
@@ -116,8 +313,8 @@ mod tests {
                 r##"{"bar":{"baz":true}}"##,
             ),
             (
-                r##"{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}"##,
-                "true",
+                r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" format="json"}}"##,
+                r##"{"bar":{"baz":true}}"##,
             ),
             (
                 r##"{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}"##,
@@ -126,4 +323,66 @@ mod tests {
         ])?;
         Ok(())
     }
+
+    #[test]
+    fn test_helper_json_str_query_on_yaml() -> Result<(), Box<dyn Error>> {
+        assert_renders(vec![
+            (
+                r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" format="yaml"}}"##,
+                indoc!(
+                    "
+                bar:
+                  baz: true"
+                ),
+            ),
+            (
+                r##"{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
+                indoc!(
+                    "
+                bar:
+                  baz: true"
+                ),
+            ),
+            (
+                r##"{{ json_str_query "foo.bar.baz" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
+                "true",
+            ),
+        ])?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_helper_json_str_query_on_toml() -> Result<(), Box<dyn Error>> {
+        assert_renders(vec![
+            (
+                r##"{{ json_str_query "foo" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
+                indoc!(
+                    "[bar]
+                    baz = true
+                    "
+                ),
+            ),
+            (
+                r##"{{ json_str_query "foo.bar.baz" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
+                "true",
+            ),
+        ])?;
+        Ok(())
+    }
+
+    // #[test]
+    // fn test_helper_json_to_str_yaml() -> Result<(), Box<dyn Error>> {
+    //     assert_renders(vec![
+    //         (r##"{{ json_to_str_yaml {} }}"##, r##"{}"##),
+    //         (
+    //             r##"{{ json_to_str_yaml {"foo":{"bar":{"baz":true}}} }}"##,
+    //             r##"{"foo":{"bar":{"baz":true}}}"##,
+    //         ),
+    //         (
+    //             r##"{{ json_to_str_yaml ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) }}"##,
+    //             r##"{"foo":{"bar":{"baz":true}}}"##,
+    //         ),
+    //     ])?;
+    //     Ok(())
+    // }
 }

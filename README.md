@@ -29,46 +29,47 @@ see [Handlebars templating language](https://handlebarsjs.com/)
 
 <!-- TOC depthFrom:2 -->
 
-- [String transformation](#string-transformation)
-- [Http content](#http-content)
-- [Path extraction](#path-extraction)
-- [Environment variable](#environment-variable)
-- [JSON](#json)
-- [Assign](#assign)
+- [handlebars_misc_helpers](#handlebarsmischelpers)
+  - [String transformation](#string-transformation)
+  - [Http content](#http-content)
+  - [Path extraction](#path-extraction)
+  - [Environment variable](#environment-variable)
+  - [JSON](#json)
+  - [Assign](#assign)
 
 <!-- /TOC -->
 
 ## String transformation
 
-helper signature | usage sample | sample out
--- | -- | --
-`replace s:String from:String to:String` | `replace "Hello old" "old" "new"` | `"Hello new"`
-`to_lower_case s:String` | `to_lower_case "Hello foo-bars"` | `"hello foo-bars"`
-`to_upper_case s:String` | `to_upper_case "Hello foo-bars"` | `"HELLO FOO-BARS"`
-`to_camel_case s:String` | `to_camel_case "Hello foo-bars"` | `"helloFooBars"`
-`to_pascal_case s:String` | `to_pascal_case "Hello foo-bars"` | `"HelloFooBars"`
-`to_snake_case s:String` | `to_snake_case "Hello foo-bars"` | `"hello_foo_bars"`
-`to_screaming_snake_case s:String` | `to_screaming_snake_case "Hello foo-bars"` | `"HELLO_FOO_BARS"`
-`to_kebab_case s:String` | `to_kebab_case "Hello foo-bars"` | `"hello-foo-bars"`
-`to_train_case s:String` | `to_train_case "Hello foo-bars"` | `"Hello-Foo-Bars"`
-`to_sentence_case s:String` | `to_sentence_case "Hello foo-bars"` | `"Hello foo" bars`
-`to_title_case s:String` | `to_title_case "Hello foo-bars"` | `"Hello Foo Bars"`
-`to_class_case s:String` | `to_class_case "Hello foo-bars"` | `"HelloFooBar"`
-`to_table_case s:String` | `to_table_case "Hello foo-bars"` | `"hello_foo_bars"`
-`to_plural s:String` | `to_plural "Hello foo-bars"` | `"bars"`
-`to_singular s:String` | `to_singular "Hello foo-bars"` | `"bar"`
-`trim s:String` | `trim " foo "` | `"foo"`
-`trim_start s:String` | `trim_start " foo "` | `"foo "`
-`trim_end s:String` | `trim_end " foo "` | `" foo"`
+| helper signature                         | usage sample                               | sample out         |
+| ---------------------------------------- | ------------------------------------------ | ------------------ |
+| `replace s:String from:String to:String` | `replace "Hello old" "old" "new"`          | `"Hello new"`      |
+| `to_lower_case s:String`                 | `to_lower_case "Hello foo-bars"`           | `"hello foo-bars"` |
+| `to_upper_case s:String`                 | `to_upper_case "Hello foo-bars"`           | `"HELLO FOO-BARS"` |
+| `to_camel_case s:String`                 | `to_camel_case "Hello foo-bars"`           | `"helloFooBars"`   |
+| `to_pascal_case s:String`                | `to_pascal_case "Hello foo-bars"`          | `"HelloFooBars"`   |
+| `to_snake_case s:String`                 | `to_snake_case "Hello foo-bars"`           | `"hello_foo_bars"` |
+| `to_screaming_snake_case s:String`       | `to_screaming_snake_case "Hello foo-bars"` | `"HELLO_FOO_BARS"` |
+| `to_kebab_case s:String`                 | `to_kebab_case "Hello foo-bars"`           | `"hello-foo-bars"` |
+| `to_train_case s:String`                 | `to_train_case "Hello foo-bars"`           | `"Hello-Foo-Bars"` |
+| `to_sentence_case s:String`              | `to_sentence_case "Hello foo-bars"`        | `"Hello foo" bars` |
+| `to_title_case s:String`                 | `to_title_case "Hello foo-bars"`           | `"Hello Foo Bars"` |
+| `to_class_case s:String`                 | `to_class_case "Hello foo-bars"`           | `"HelloFooBar"`    |
+| `to_table_case s:String`                 | `to_table_case "Hello foo-bars"`           | `"hello_foo_bars"` |
+| `to_plural s:String`                     | `to_plural "Hello foo-bars"`               | `"bars"`           |
+| `to_singular s:String`                   | `to_singular "Hello foo-bars"`             | `"bar"`            |
+| `trim s:String`                          | `trim " foo "`                             | `"foo"`            |
+| `trim_start s:String`                    | `trim_start " foo "`                       | `"foo "`           |
+| `trim_end s:String`                      | `trim_end " foo "`                         | `" foo"`           |
 
 ## Http content
 
 Helper able to render body response from an http request.
 
-helper signature | usage sample
--- | --
-`http_get url:String` | `http_get "http://hello/..."`
-`gitignore_io templates:String` | `gitignore_io "rust,visualstudiocode"`
+| helper signature                | usage sample                           |
+| ------------------------------- | -------------------------------------- |
+| `http_get url:String`           | `http_get "http://hello/..."`          |
+| `gitignore_io templates:String` | `gitignore_io "rust,visualstudiocode"` |
 
 ## Path extraction
 
@@ -76,19 +77,19 @@ Helper able to extract (or transform) path (defined as string).
 
 for the same input: `"/hello/bar/foo.txt"`
 
-helper_name | sample output
--- | --
-file_name | `"foo.txt"`
-parent | `"/hello/bar"`
-extension | `"txt"`
+| helper_name | sample output  |
+| ----------- | -------------- |
+| file_name   | `"foo.txt"`    |
+| parent      | `"/hello/bar"` |
+| extension   | `"txt"`        |
 
 ## Environment variable
 
 Helper able to get environment variables.
 
-helper_name | usage
--- | --
-env_var | `env_var "HOME"`
+| helper_name | usage            |
+| ----------- | ---------------- |
+| env_var     | `env_var "HOME"` |
 
 Specials environment variables are predefined (some of them come from [std::env::consts - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
 
@@ -161,32 +162,43 @@ Specials environment variables are predefined (some of them come from [std::env:
     </tbody>
 </table>
 
-
 ## JSON
 
 helpers:
 
 - `json_query query:String data:Json`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`.
-- `json_str_query query:String data:String`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`.
-- `json_to_str data:Json`: convert a json into a string (no pretty).
-- `json_to_str data:String`: convert(parse) a string into a json.
+- `json_str_query query:String data:String`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`, data follows the requested `format`.
+- `json_to_str data:Json`: convert a json data into a string following the requested `format`.
+- `str_to_json data:String`: convert(parse) a string into a json following the requested `format`.
 
-usage| output
--- | --
-`{{ json_query "foo" {} }}` | ``
-`{{ json_to_str ( json_query "foo" {"foo":{"bar":{"baz":true}}} ) }}` | `{"bar":{"baz":true}}`
-`{{ json_to_str ( json_query "foo" (str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) ) }}` | `{"bar":{"baz":true}}
-`{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `{"bar":{"baz":true}}`
-`{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}` | `true`
+The optional requested `format`, is the format of the string with data:
+
+- `"json"` (default if omitted)
+- `"json_pretty"` json with indentation,...
+- `"yaml"`
+- `"toml"`
+- `"toml_pretty"`
+
+| usage                                                                                              | output                          |
+| -------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `{{ json_query "foo" {} }}`                                                                        | ``                              |
+| `{{ json_to_str ( json_query "foo" {"foo":{"bar":{"baz":true}}} ) }}`                              | `{"bar":{"baz":true}}`          |
+| `{{ json_to_str ( json_query "foo" (str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) ) }}`       | `{"bar":{"baz":true}}`          |
+| `{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}`                                  | `{"bar":{"baz":true}}`          |
+| `{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}`                          | `true`                          |
+| `{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}`                             | `bar:\n  baz: true\n`           |
+| `{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" format="json") format="yaml"}}` | `foo:\n  bar:\n    baz: true\n` |
+
+Note: YAML & TOML content are used as input and output format for json data. So capabalities are limited to what json support (eg. no datetime type like in TOML).
 
 ## Assign
 
 Helper able to assign (to set) a variable to use later in the template.
 
-usage| output
--- | --
-`{{ assign "foo" "{}" }}` | ``
-`{{ assign "foo" "{}" }}{{ foo }}` | `{}`
-`{{ assign "foo" "hello world" }}{{ foo }}` | `hello world`
-`{{ assign "foo" {} }}{{ foo }}` | `[object]`
-`{{ assign "foo" {"bar": 33} }}{{ foo }}` | `[object]`
+| usage                                       | output        |
+| ------------------------------------------- | ------------- |
+| `{{ assign "foo" "{}" }}`                   | ``            |
+| `{{ assign "foo" "{}" }}{{ foo }}`          | `{}`          |
+| `{{ assign "foo" "hello world" }}{{ foo }}` | `hello world` |
+| `{{ assign "foo" {} }}{{ foo }}`            | `[object]`    |
+| `{{ assign "foo" {"bar": 33} }}{{ foo }}`   | `[object]`    |
