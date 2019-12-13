@@ -1,4 +1,11 @@
 #![deny(unsafe_code)]
+//#![doc(html_root_url = "https://docs.rs/tower-service/0.3.0")]
+// #![warn(
+//     missing_debug_implementations,
+//     missing_docs,
+//     rust_2018_idioms,
+//     unreachable_pub
+// )]
 
 use handlebars::Handlebars;
 use handlebars::HelperDef;
@@ -75,7 +82,9 @@ mod tests {
         Ok(())
     }
 
-    pub(crate) fn assert_renders(samples_expected: Vec<(&str, &str)>) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn assert_renders(
+        samples_expected: Vec<(&str, &str)>,
+    ) -> Result<(), Box<dyn Error>> {
         let vs: HashMap<String, String> = HashMap::new();
         let hbs = new_hbs();
         for sample in samples_expected {
