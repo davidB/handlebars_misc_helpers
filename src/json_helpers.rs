@@ -55,6 +55,10 @@ impl FromStr for DataFormat {
 
 impl DataFormat {
     fn read_string(&self, data: &str) -> Result<Json, RenderError> {
+        if data.is_empty() {
+            //return Ok(Json::Null);
+            return Ok(Json::String("".to_owned()));
+        }
         match self {
             DataFormat::Json | DataFormat::JsonPretty => {
                 serde_json::from_str(&data).map_err(RenderError::with)
@@ -67,14 +71,20 @@ impl DataFormat {
     }
 
     fn write_string(&self, data: &Json) -> Result<String, RenderError> {
-        match self {
-            DataFormat::Json => serde_json::to_string(data).map_err(RenderError::with),
-            DataFormat::JsonPretty => serde_json::to_string_pretty(data).map_err(RenderError::with),
-            DataFormat::Yaml => serde_yaml::to_string(data)
-                .map_err(RenderError::with)
-                .map(|s| s.trim_start_matches("---\n").to_string()),
-            DataFormat::Toml => toml::to_string(data).map_err(RenderError::with),
-            DataFormat::TomlPretty => toml::to_string_pretty(data).map_err(RenderError::with),
+        match data {
+            Json::Null => Ok("".to_owned()),
+            Json::String(c) if c.is_empty() => Ok("".to_owned()),
+            _ => match self {
+                DataFormat::Json => serde_json::to_string(data).map_err(RenderError::with),
+                DataFormat::JsonPretty => {
+                    serde_json::to_string_pretty(data).map_err(RenderError::with)
+                }
+                DataFormat::Yaml => serde_yaml::to_string(data)
+                    .map_err(RenderError::with)
+                    .map(|s| s.trim_start_matches("---\n").to_string()),
+                DataFormat::Toml => toml::to_string(data).map_err(RenderError::with),
+                DataFormat::TomlPretty => toml::to_string_pretty(data).map_err(RenderError::with),
+            },
         }
     }
 }
@@ -105,9 +115,10 @@ fn find_str_param<'reg: 'rc, 'rc>(
 ) -> Result<String, RenderError> {
     h.param(pos)
         .ok_or_else(|| RenderError::new(format!("param {} (the string) not found", pos)))
-        .and_then(|v| {
-            serde_json::from_value::<String>(v.value().clone()).map_err(RenderError::with)
-        })
+        // .and_then(|v| {
+        //     serde_json::from_value::<String>(v.value().clone()).map_err(RenderError::with)
+        // })
+        .map(|v| v.value().as_str().unwrap_or("").to_owned())
 }
 
 #[allow(non_camel_case_types)]
@@ -121,8 +132,8 @@ impl HelperDef for str_to_json_fct {
         _: &'rc Context,
         _: &mut RenderContext,
     ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
-        let format = find_data_format(h)?;
         let data: String = find_str_param(0, h)?;
+        let format = find_data_format(h)?;
         let result = format.read_string(&data)?;
         Ok(Some(ScopedJson::Derived(result)))
     }
@@ -167,7 +178,6 @@ impl HelperDef for json_str_query_fct {
         let result = json_query(expr, data)
             .map_err(RenderError::with)
             .and_then(|v| format.write_string(&v))?;
-        dbg!(&result);
         Ok(Some(ScopedJson::Derived(Json::String(result))))
     }
 }
@@ -193,6 +203,39 @@ mod tests {
     use indoc::indoc;
     use spectral::prelude::*;
     use std::error::Error;
+
+    #[test]
+    fn test_empty_input_return_empty() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{ json_to_str "" }}"##, ""),
+            (r##"{{ json_to_str "" format="json"}}"##, ""),
+            (r##"{{ json_to_str "" format="yaml"}}"##, ""),
+            (r##"{{ json_to_str "" format="toml"}}"##, ""),
+            (r##"{{ str_to_json "" }}"##, ""),
+            (r##"{{ str_to_json "" format="json"}}"##, ""),
+            (r##"{{ str_to_json "" format="yaml"}}"##, ""),
+            (r##"{{ str_to_json "" format="toml"}}"##, ""),
+            (r##"{{ json_to_str (str_to_json "") }}"##, ""),
+            (r##"{{ str_to_json (json_to_str "") }}"##, ""),
+            (r##"{{ json_query "foo" "" }}"##, ""),
+            (r##"{{ json_str_query "foo" "" }}"##, ""),
+            (r##"{{ json_str_query "foo" "" format="json"}}"##, ""),
+            (r##"{{ json_str_query "foo" "" format="yaml"}}"##, ""),
+            (r##"{{ json_str_query "foo" "" format="toml"}}"##, "")
+        ]
+    }
+
+    #[test]
+    fn test_null_input_return_empty() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{ json_to_str null }}"##, ""),
+            (r##"{{ str_to_json null }}"##, ""),
+            (r##"{{ json_to_str (str_to_json null) }}"##, ""),
+            (r##"{{ str_to_json (json_to_str null) }}"##, ""),
+            (r##"{{ json_query "foo" null }}"##, ""),
+            (r##"{{ json_str_query "foo" null }}"##, "")
+        ]
+    }
 
     #[test]
     fn test_search_object_field() -> Result<(), Box<dyn Error>> {
