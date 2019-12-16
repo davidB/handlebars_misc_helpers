@@ -212,9 +212,14 @@ mod tests {
         Ok(())
     }
 
+    fn normalize_nl(s: &str) -> String {
+        s.replace("\r\n", "\n").replace("\r", "")
+    }
+
     fn assert_data_format_write_eq_read(f: DataFormat, data: &str) -> Result<(), Box<dyn Error>> {
-        let actual = f.write_string(&f.read_string(data)?)?.replace("\r\n", "\n");
-        assert_that!(&actual).is_equal_to(data.to_owned().replace("\r\n", "\n"));
+        let data = normalize_nl(data);
+        let actual = normalize_nl(&f.write_string(&f.read_string(&data)?)?);
+        assert_that!(&actual).is_equal_to(data);
         Ok(())
     }
 
@@ -277,13 +282,13 @@ mod tests {
             ),
             (
                 r##"{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) format="json_pretty"}}"##,
-                indoc!(r##"{
+                normalize_nl(indoc!(r##"{
                   "foo": {
                     "bar": {
                       "baz": true
                     }
                   }
-                }"##).replace("\r\n", "\n").as_ref(),
+                }"##)).as_ref(),
             ),
         ])?;
         Ok(())
@@ -329,22 +334,20 @@ mod tests {
         assert_renders(vec![
             (
                 r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" format="yaml"}}"##,
-                indoc!(
+                normalize_nl(indoc!(
                     "
                 bar:
                   baz: true"
-                )
-                .replace("\r\n", "\n")
+                ))
                 .as_ref(),
             ),
             (
                 r##"{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
-                indoc!(
+                normalize_nl(indoc!(
                     "
                 bar:
                   baz: true"
-                )
-                .replace("\r\n", "\n")
+                ))
                 .as_ref(),
             ),
             (
