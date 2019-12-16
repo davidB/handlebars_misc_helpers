@@ -58,8 +58,8 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
 
 #[cfg(test)]
 mod tests {
+    use crate::assert_renders;
     use crate::tests::assert_helpers;
-    use crate::tests::assert_renders;
     use std::error::Error;
 
     #[test]
@@ -88,40 +88,36 @@ mod tests {
 
     #[test]
     fn test_helper_trim() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (r##"{{ trim "foo" }}"##, r##"foo"##),
             (r##"{{ trim "  foo" }}"##, r##"foo"##),
             (r##"{{ trim "foo  " }}"##, r##"foo"##),
-            (r##"{{ trim " foo " }}"##, r##"foo"##),
-        ])?;
-        Ok(())
+            (r##"{{ trim " foo " }}"##, r##"foo"##)
+        ]
     }
 
     #[test]
     fn test_helper_trim_start() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (r##"{{ trim_start "foo" }}"##, r##"foo"##),
             (r##"{{ trim_start "  foo" }}"##, r##"foo"##),
             (r##"{{ trim_start "foo  " }}"##, r##"foo  "##),
-            (r##"{{ trim_start " foo " }}"##, r##"foo "##),
-        ])?;
-        Ok(())
+            (r##"{{ trim_start " foo " }}"##, r##"foo "##)
+        ]
     }
 
     #[test]
     fn test_helper_trim_end() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (r##"{{ trim_end "foo" }}"##, r##"foo"##),
             (r##"{{ trim_end "  foo" }}"##, r##"  foo"##),
             (r##"{{ trim_end "foo  " }}"##, r##"foo"##),
-            (r##"{{ trim_end " foo " }}"##, r##" foo"##),
-        ])?;
-        Ok(())
+            (r##"{{ trim_end " foo " }}"##, r##" foo"##)
+        ]
     }
 
     #[test]
     fn test_helper_replace() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![(r##"{{ replace "foo" "oo" "aa"}}"##, r##"faa"##)])?;
-        Ok(())
+        assert_renders![(r##"{{ replace "foo" "oo" "aa"}}"##, r##"faa"##)]
     }
 }

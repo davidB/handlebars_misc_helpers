@@ -189,7 +189,7 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tests::assert_renders;
+    use crate::assert_renders;
     use indoc::indoc;
     use spectral::prelude::*;
     use std::error::Error;
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_helper_json_to_str() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (r##"{{ json_to_str {} }}"##, r##"{}"##),
             (
                 r##"{{ json_to_str {"foo":{"bar":{"baz":true}}} }}"##,
@@ -282,21 +282,20 @@ mod tests {
             ),
             (
                 r##"{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) format="json_pretty"}}"##,
-                normalize_nl(indoc!(r##"{
+                &normalize_nl(indoc!(r##"{
                   "foo": {
                     "bar": {
                       "baz": true
                     }
                   }
-                }"##)).as_ref(),
-            ),
-        ])?;
-        Ok(())
+                }"##)),
+            )
+        ]
     }
 
     #[test]
     fn test_helper_json_query() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (r##"{{ json_query "foo" {} }}"##, r##""##),
             (
                 r##"{{ json_to_str ( json_query "foo" {"foo":{"bar":{"baz":true}}} ) }}"##,
@@ -305,14 +304,13 @@ mod tests {
             (
                 r##"{{ json_to_str ( json_query "foo" (str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) ) }}"##,
                 r##"{"bar":{"baz":true}}"##,
-            ),
-        ])?;
-        Ok(())
+            )
+        ]
     }
 
     #[test]
     fn test_helper_json_str_query() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (
                 r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}"##,
                 r##"{"bar":{"baz":true}}"##,
@@ -324,43 +322,39 @@ mod tests {
             (
                 r##"{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}"##,
                 "true",
-            ),
-        ])?;
-        Ok(())
+            )
+        ]
     }
 
     #[test]
     fn test_helper_json_str_query_on_yaml() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (
                 r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" format="yaml"}}"##,
-                normalize_nl(indoc!(
+                &normalize_nl(indoc!(
                     "
                 bar:
                   baz: true"
                 ))
-                .as_ref(),
             ),
             (
                 r##"{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
-                normalize_nl(indoc!(
+                &normalize_nl(indoc!(
                     "
                 bar:
                   baz: true"
                 ))
-                .as_ref(),
             ),
             (
                 r##"{{ json_str_query "foo.bar.baz" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
                 "true",
-            ),
-        ])?;
-        Ok(())
+            )
+        ]
     }
 
     #[test]
     fn test_helper_json_str_query_on_toml() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (
                 r##"{{ json_str_query "foo" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
                 indoc!(
@@ -372,8 +366,7 @@ mod tests {
             (
                 r##"{{ json_str_query "foo.bar.baz" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
                 "true",
-            ),
-        ])?;
-        Ok(())
+            )
+        ]
     }
 }

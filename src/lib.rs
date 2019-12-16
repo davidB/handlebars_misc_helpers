@@ -82,19 +82,37 @@ mod tests {
         Ok(())
     }
 
-    pub(crate) fn assert_renders(
-        samples_expected: Vec<(&str, &str)>,
-    ) -> Result<(), Box<dyn Error>> {
-        let vs: HashMap<String, String> = HashMap::new();
-        let hbs = new_hbs();
-        for sample in samples_expected {
-            let tmpl = sample.0;
-            assert_that!(hbs.render_template(&tmpl, &vs)?)
-                .named(sample.0)
-                .is_equal_to(sample.1.to_owned());
-        }
-        Ok(())
+    #[macro_export]
+    macro_rules! assert_renders {
+        ($($arg:expr),+) => {{
+            use std::collections::HashMap;
+            use spectral::prelude::*;
+            let vs: HashMap<String, String> = HashMap::new();
+            let mut hbs = $crate::new_hbs();
+            $({
+                let sample: (&str, &str) = $arg;
+                hbs.register_template_string(&sample.0, &sample.0).expect("register_template_string");
+                assert_that!(hbs.render(&sample.0, &vs).expect("render"))
+                    .named(sample.0)
+                    .is_equal_to(sample.1.to_owned());
+            })*
+            Ok(())
+        }}
     }
+
+    // pub(crate) fn assert_renders(
+    //     samples_expected: Vec<(&str, &str)>,
+    // ) -> Result<(), Box<dyn Error>> {
+    //     let vs: HashMap<String, String> = HashMap::new();
+    //     let hbs = new_hbs();
+    //     for sample in samples_expected {
+    //         let tmpl = sample.0;
+    //         assert_that!(hbs.render_template(&tmpl, &vs)?)
+    //             .named(sample.0)
+    //             .is_equal_to(sample.1.to_owned());
+    //     }
+    //     Ok(())
+    // }
 
     #[test]
     #[cfg(feature = "string")]

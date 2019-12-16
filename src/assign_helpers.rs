@@ -43,12 +43,12 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::assert_renders;
+    use crate::assert_renders;
     use std::error::Error;
 
     #[test]
     fn test_helper_assign() -> Result<(), Box<dyn Error>> {
-        assert_renders(vec![
+        assert_renders![
             (r##"{{ assign "foo" "{}" }}"##, r##""##),
             (r##"{{ assign "foo" "{}" }}{{ foo }}"##, r##"{}"##),
             (r##"{{ assign "foo" {} }}{{ foo }}"##, r##"[object]"##),
@@ -59,8 +59,7 @@ mod tests {
             (
                 r##"{{ assign "foo" "hello world" }}{{ foo }}"##,
                 r##"hello world"##,
-            ),
-        ])?;
-        Ok(())
+            )
+        ]
     }
 }
