@@ -13,6 +13,7 @@ use snafu::Snafu;
 
 pub mod assign_helpers;
 pub mod env_helpers;
+pub mod file_helpers;
 #[cfg(feature = "http")]
 pub mod http_helpers;
 #[cfg(feature = "json")]
@@ -53,6 +54,7 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
         #[cfg(feature = "json")]
         json_helpers::register(handlebars),
         assign_helpers::register(handlebars),
+        file_helpers::register(handlebars),
     ]
     .into_iter()
     .flatten()

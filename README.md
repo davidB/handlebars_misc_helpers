@@ -34,6 +34,7 @@ see [Handlebars templating language](https://handlebarsjs.com/)
   - [String transformation](#string-transformation)
   - [Http content](#http-content)
   - [Path extraction](#path-extraction)
+  - [File](#file)
   - [Environment variable](#environment-variable)
   - [JSON &amp; YAML &amp; TOML](#json-amp-yaml-amp-toml)
   - [Assign](#assign)
@@ -83,6 +84,15 @@ for the same input: `"/hello/bar/foo.txt"`
 | file_name   | `"foo.txt"`    |
 | parent      | `"/hello/bar"` |
 | extension   | `"txt"`        |
+
+## File
+
+Helper to read file content.
+
+| usage                                     | output                     |
+| ----------------------------------------- | -------------------------- |
+| `{{ read_to_str "/foo/bar" }}`            | content of file `/foo/bar` |
+| `{{ read_to_str "file/does/not/exist" }}` | empty string               |
 
 ## Environment variable
 
