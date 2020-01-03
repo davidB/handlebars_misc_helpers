@@ -1,5 +1,7 @@
-use handlebars::HelperDef;
-use handlebars::{handlebars_helper, Handlebars};
+use handlebars::{
+    handlebars_helper, Context, Handlebars, Helper, HelperDef, RenderContext, RenderError,
+    ScopedJson,
+};
 use inflector::Inflector;
 
 #[macro_export]
@@ -9,6 +11,31 @@ macro_rules! handlebars_register_inflector {
             handlebars_helper!($fct_name: |v: str| v.$fct_name());
             $engine.register_helper(stringify!($fct_name), Box::new($fct_name))
         }
+    }
+}
+
+#[allow(non_camel_case_types)]
+pub struct first_non_empty_fct;
+
+impl HelperDef for first_non_empty_fct {
+    fn call_inner<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'reg, 'rc>,
+        _: &'reg Handlebars,
+        _: &'rc Context,
+        _: &mut RenderContext,
+    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        let params = h.params();
+        Ok(params
+            .iter()
+            .filter_map(|p| p.value().as_str().filter(|s| !s.is_empty()))
+            // .filter_map(|p| {
+            //     serde_json::to_string(p.value())
+            //         .ok()
+            //         .filter(|s| !s.is_empty())
+            // })
+            .nth(0)
+            .map(|v| ScopedJson::Derived(serde_json::Value::String(v.to_owned()))))
     }
 }
 
@@ -50,6 +77,24 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
         handlebars_register_inflector!(handlebars, to_table_case),
         handlebars_register_inflector!(handlebars, to_plural),
         handlebars_register_inflector!(handlebars, to_singular),
+        {
+            handlebars_helper!(quote: |quote_symbol: str, v: str| enquote::enquote(quote_symbol.chars().next().unwrap_or('"'), &v));
+            handlebars.register_helper("quote", Box::new(quote))
+        },
+        {
+            handlebars_helper!(unquote: |v: str| match enquote::unquote(&v){
+                Err(e) => {
+                    log::warn!(
+                        "helper: unquote failed for string '{:?}' with error '{:?}'",
+                        v, e
+                    );
+                    v.to_owned()
+                }
+                Ok(s) => s,
+            });
+            handlebars.register_helper("unquote", Box::new(unquote))
+        },
+        handlebars.register_helper("first_non_empty", Box::new(first_non_empty_fct)),
     ]
     .into_iter()
     .flatten()
@@ -117,7 +162,44 @@ mod tests {
     }
 
     #[test]
+    fn test_helper_quote() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{ quote "'" "''" }}"##, r##"'\'\''"##),
+            (r##"{{ quote "'" "foo" }}"##, r##"'foo'"##),
+            (r##"{{ quote "\"" "foo" }}"##, r##""foo""##),
+            (r##"{{ quote "" "foo" }}"##, r##""foo""##),
+        ]
+    }
+
+    #[test]
+    fn test_helper_unquote() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{ unquote "''" }}"##, r##""##),
+            (r##"{{ unquote "'f'" }}"##, r##"f"##),
+            (r##"{{ unquote "foo" }}"##, r##"foo"##),
+            (r##"{{ unquote "'foo'" }}"##, r##"foo"##),
+            (r##"{{ unquote "\"foo\"" }}"##, r##"foo"##),
+            (r##"{{ unquote "foo'" }}"##, r##"foo'"##),
+            (r##"{{ unquote "'foo" }}"##, r##"'foo"##),
+        ]
+    }
+
+    #[test]
     fn test_helper_replace() -> Result<(), Box<dyn Error>> {
         assert_renders![(r##"{{ replace "foo" "oo" "aa"}}"##, r##"faa"##)]
+    }
+
+    #[test]
+    fn test_helper_first_non_empty() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{ first_non_empty ""}}"##, r##""##),
+            (r##"{{ first_non_empty "foo"}}"##, r##"foo"##),
+            (r##"{{ first_non_empty "foo" "bar"}}"##, r##"foo"##),
+            (r##"{{ first_non_empty "" "foo"}}"##, r##"foo"##),
+            (r##"{{ first_non_empty "" "foo" "bar"}}"##, r##"foo"##),
+            (r##"{{ first_non_empty "" null}}"##, r##""##),
+            (r##"{{ first_non_empty "" null 33}}"##, r##""##),
+            (r##"{{ first_non_empty "" null "foo" "bar"}}"##, r##"foo"##),
+        ]
     }
 }

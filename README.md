@@ -16,14 +16,18 @@ Few helpers are included, but if you need more helpers, ask via an issue or a PR
 To use an helper:
 
 ```handlebars
-{{ helper_name argument}}
+// arguments are space separated
+{{ helper_name arguments}}
 ```
 
 To chain helpers, use parenthesis:
 
 ```handlebars
 {{ to_upper_case (to_singular "Hello foo-bars") }}
-// -> "BAR"
+// -> BAR
+
+{{ first_non_empty (unquote (json_str_query "package.edition" (read_to_str "Cargo.toml") format="toml")) (env_var "MY_VERSION") "foo" }}
+// -> 2018
 ```
 
 see [Handlebars templating language](https://handlebarsjs.com/)
@@ -63,6 +67,9 @@ see [Handlebars templating language](https://handlebarsjs.com/)
 | `trim s:String`                          | `trim " foo "`                             | `"foo"`            |
 | `trim_start s:String`                    | `trim_start " foo "`                       | `"foo "`           |
 | `trim_end s:String`                      | `trim_end " foo "`                         | `" foo"`           |
+| `unquote s:String`                       | `unquote "\"foo\""`                        | `"foo"`            |
+| `enquote symbol:String s:String`         | `enquote "" "foo"`                         | `"\"foo\""`        |
+| `first_non_empty s:String+`              | `first_non_empty "" null "foo" "bar"`      | `"foo"`            |
 
 ## Http content
 

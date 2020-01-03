@@ -86,7 +86,7 @@ mod tests {
 
     #[macro_export]
     macro_rules! assert_renders {
-        ($($arg:expr),+) => {{
+        ($($arg:expr),+$(,)?) => {{
             use std::collections::HashMap;
             use spectral::prelude::*;
             let vs: HashMap<String, String> = HashMap::new();
@@ -125,5 +125,25 @@ mod tests {
         let actual = hbs.render_template(&tmpl, &vs)?;
         assert_that!(&actual).is_equal_to("BAR".to_string());
         Ok(())
+    }
+
+    #[test]
+    #[cfg(feature = "string")]
+    fn test_chain_of_default() -> Result<(), Box<dyn Error>> {
+        std::env::set_var("MY_VERSION_1", "1.0.0");
+        assert_renders![
+            (
+                r##"{{ first_non_empty (env_var "MY_VERSION") "0.0.0" }}"##,
+                r##"0.0.0"##
+            ),
+            (
+                r##"{{ first_non_empty (env_var "MY_VERSION_1") "0.0.0" }}"##,
+                r##"1.0.0"##
+            ),
+            (
+                r##"{{ first_non_empty (unquote (json_str_query "package.edition" (read_to_str "Cargo.toml") format="toml")) (env_var "MY_VERSION") "0.0.0" }}"##,
+                r##"2018"##
+            ),
+        ]
     }
 }
