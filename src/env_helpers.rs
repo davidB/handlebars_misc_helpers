@@ -22,11 +22,10 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
                 Ok(s) => s,
                 Err(e) => {
                     //TODO better error handler
-                    //use slog::warn;
-                    //warn!(ctx.logger, "helper: http_get"; "url" => format!("{:?}", url), "err" => format!("{:?}", e))
-                    eprintln!(
+                    log::info!(
                         "helper: env_var failed for key '{:?}' with error '{:?}'",
-                        key, e
+                        key,
+                        e
                     );
                     "".to_owned()
                 }
@@ -64,7 +63,6 @@ mod tests {
     fn test_env_consts() -> Result<(), Box<dyn Error>> {
         let key = "OS";
         let os = std::env::consts::OS;
-        dbg!(os);
         assert_ne!(os, "");
         assert_helpers(key, vec![("env_var", os)])?;
         Ok(())

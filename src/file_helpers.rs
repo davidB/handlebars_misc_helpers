@@ -7,8 +7,12 @@ pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>
         handlebars_helper!(read_to_str: |v: str| {
             let p = Path::new(v);
             if p.exists() {
-                dbg!(std::fs::read_to_string(p)?)
+                std::fs::read_to_string(p)?
             } else {
+                log::warn!(
+                    "helper: read_to_str failed for non existing path path '{:?}'",
+                    v
+                );
                 "".to_owned()
             }
         });
