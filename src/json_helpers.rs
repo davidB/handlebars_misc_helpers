@@ -14,7 +14,7 @@ use toml;
 
 #[derive(Debug, Snafu)]
 enum JsonError {
-    JsonQueryError {
+    JsonQueryFailure {
         expression: String,
         source: jmespath::JmespathError,
     },
@@ -22,7 +22,7 @@ enum JsonError {
         input: String,
         source: serde_json::error::Error,
     },
-    DataFormatUnknownError {
+    DataFormatUnknown {
         format: String,
     },
 }
@@ -46,7 +46,7 @@ impl FromStr for DataFormat {
             "yaml" => Ok(Self::Yaml),
             "toml" => Ok(Self::Toml),
             "toml_pretty" => Ok(Self::TomlPretty),
-            _ => Err(JsonError::DataFormatUnknownError {
+            _ => Err(JsonError::DataFormatUnknown {
                 format: s.to_string(),
             }),
         }
@@ -93,7 +93,7 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
     let data = data.to_jmespath();
     let res = jmespath::compile(expr.as_ref())
         .and_then(|e| e.search(data))
-        .context(JsonQueryError {
+        .context(JsonQueryFailure {
             expression: expr.as_ref().to_string(),
         })?;
     serde_json::to_value(res.as_ref()).context(ToJsonValueError {
@@ -153,7 +153,7 @@ impl HelperDef for json_to_str_fct {
         let format = find_data_format(h)?;
         let data = h
             .param(0)
-            .ok_or(RenderError::new("param 0 (the json) not found"))
+            .ok_or_else(|| RenderError::new("param 0 (the json) not found"))
             .map(|v| v.value())?;
         let result = format.write_string(&data)?;
         Ok(Some(ScopedJson::Derived(Json::String(result))))
