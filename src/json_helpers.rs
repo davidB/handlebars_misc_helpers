@@ -325,13 +325,15 @@ mod tests {
             ),
             (
                 r##"{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) format="json_pretty"}}"##,
-                &normalize_nl(indoc!(r##"{
+                &normalize_nl(indoc!(
+                    r##"{
                   "foo": {
                     "bar": {
                       "baz": true
                     }
                   }
-                }"##)),
+                }"##
+                )),
             )
         ]
     }
