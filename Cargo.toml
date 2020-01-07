@@ -17,7 +17,7 @@ exclude = ["/azure-pipelines.yml", "/docs/**", "/scripts", ".gitignore", "/tests
 handlebars = "^2.0.2"
 snafu = "^0.6"
 log = "^0.4"
-attohttpc = { version = "^0.8", optional = true }
+attohttpc = { version = "^0.9", optional = true }
 Inflector = { version = "^0.11", optional = true }
 jmespath = { version = "^0.2", optional = true }
 serde = { version = "^1", optional = true }
