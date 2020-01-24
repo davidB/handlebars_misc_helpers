@@ -14,7 +14,7 @@ homepage = "https://github.com/davidB/handlebars_misc_helpers"
 exclude = ["/azure-pipelines.yml", "/docs/**", "/scripts", ".gitignore", "/tests/**"]
 
 [dependencies]
-handlebars = "^2.0.2"
+handlebars = "^3.0.0"
 snafu = "^0.6"
 log = "^0.4"
 attohttpc = { version = "^0.10", optional = true }
