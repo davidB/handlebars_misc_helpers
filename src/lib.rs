@@ -32,7 +32,7 @@ enum HelperError {
     },
 }
 
-pub fn new_hbs() -> Handlebars {
+pub fn new_hbs<'reg>() -> Handlebars<'reg> {
     let mut handlebars = Handlebars::new();
     setup_handlebars(&mut handlebars);
     handlebars
@@ -43,7 +43,7 @@ pub fn setup_handlebars(handlebars: &mut Handlebars) {
     register(handlebars);
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![
         #[cfg(feature = "string")]
         string_helpers::register(handlebars),
