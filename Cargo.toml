@@ -36,3 +36,6 @@ default = [ "string", "http", "json" ]
 string = [ "Inflector", "enquote" ]
 http = [ "attohttpc" ]
 json = [ "jmespath", "serde", "serde_json", "serde_yaml", "toml" ]
+
+[patch.crates-io]
+jmespath = { git = 'https://github.com/yrashk/jmespath.rs', branch = 'json-syntax-error' }
