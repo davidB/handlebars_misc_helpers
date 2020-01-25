@@ -184,7 +184,7 @@ impl HelperDef for json_str_query_fct {
 
 handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(RenderError::with)?);
 
-pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![
         { handlebars.register_helper("json_to_str", Box::new(json_to_str_fct)) },
         { handlebars.register_helper("str_to_json", Box::new(str_to_json_fct)) },

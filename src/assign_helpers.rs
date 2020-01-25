@@ -11,7 +11,7 @@ use handlebars::RenderError;
 fn assign_fct(
     h: &Helper,
     _: &Handlebars,
-    _: &Context,
+    ctx: &Context,
     rc: &mut RenderContext,
     _: &mut dyn Output,
 ) -> HelperResult {
@@ -30,11 +30,16 @@ fn assign_fct(
             helper_signature: "assign var_name value".to_owned(),
         })
     })?;
-    rc.set_local_var(name.to_owned(), value);
+    let mut ctx = ctx.clone();
+    match ctx.data_mut() {
+        serde_json::value::Value::Object(m) => m.insert(name.to_owned(), value),
+        _ => None,
+    };
+    rc.set_context(ctx);
     Ok(())
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![{ handlebars.register_helper("assign", Box::new(assign_fct)) }]
         .into_iter()
         .flatten()

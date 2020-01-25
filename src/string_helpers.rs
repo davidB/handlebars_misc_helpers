@@ -39,7 +39,7 @@ impl HelperDef for first_non_empty_fct {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![
         {
             handlebars_helper!(to_lower_case: |v: str| v.to_lowercase());

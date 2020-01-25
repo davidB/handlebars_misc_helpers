@@ -13,7 +13,7 @@ fn expand(s: &str) -> PathBuf {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![
         {
             handlebars_helper!(parent: |v: str| {

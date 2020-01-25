@@ -34,7 +34,7 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     }
 }
 
-pub fn register(handlebars: &mut Handlebars) -> Vec<Box<dyn HelperDef + 'static>> {
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![{
         handlebars_helper!(env_var: |v: str| env_var_fct(&v));
         handlebars.register_helper("env_var", Box::new(env_var))
