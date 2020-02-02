@@ -373,8 +373,8 @@ impl<'a> Expression<'a> {
     {
         Expression {
             expression: expression.into(),
-            ast: ast,
-            runtime: runtime,
+            ast,
+            runtime,
         }
     }
 
@@ -397,12 +397,12 @@ impl<'a> Expression<'a> {
         &self.expression
     }
 
-    // /// Returns the AST of the parsed JMESPath expression.
-    // ///
-    // /// This can be useful for debugging purposes, caching, etc.
-    // pub fn as_ast(&self) -> &Ast {
-    //     &self.ast
-    // }
+    /// Returns the AST of the parsed JMESPath expression.
+    ///
+    /// This can be useful for debugging purposes, caching, etc.
+    pub fn as_ast(&self) -> &Ast {
+        &self.ast
+    }
 }
 
 impl<'a> fmt::Display for Expression<'a> {
@@ -443,8 +443,8 @@ impl<'a> Context<'a> {
     #[inline]
     pub fn new(expression: &'a str, runtime: &'a Runtime) -> Context<'a> {
         Context {
-            expression: expression,
-            runtime: runtime,
+            expression,
+            runtime,
             offset: 0,
         }
     }

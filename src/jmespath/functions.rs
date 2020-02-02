@@ -144,10 +144,7 @@ pub struct Signature {
 impl Signature {
     /// Creates a new Signature struct.
     pub fn new(inputs: Vec<ArgumentType>, variadic: Option<ArgumentType>) -> Signature {
-        Signature {
-            inputs: inputs,
-            variadic: variadic,
-        }
+        Signature { inputs, variadic }
     }
 
     /// Validates the arity of a function. If the arity is invalid, a runtime
@@ -159,25 +156,18 @@ impl Signature {
             if actual >= expected {
                 Ok(())
             } else {
-                let reason = ErrorReason::Runtime(RuntimeError::NotEnoughArguments {
-                    expected: expected,
-                    actual: actual,
-                });
+                let reason =
+                    ErrorReason::Runtime(RuntimeError::NotEnoughArguments { expected, actual });
                 Err(JmespathError::from_ctx(ctx, reason))
             }
         } else if actual == expected {
             Ok(())
         } else if actual < expected {
-            let reason = ErrorReason::Runtime(RuntimeError::NotEnoughArguments {
-                expected: expected,
-                actual: actual,
-            });
+            let reason =
+                ErrorReason::Runtime(RuntimeError::NotEnoughArguments { expected, actual });
             Err(JmespathError::from_ctx(ctx, reason))
         } else {
-            let reason = ErrorReason::Runtime(RuntimeError::TooManyArguments {
-                expected: expected,
-                actual: actual,
-            });
+            let reason = ErrorReason::Runtime(RuntimeError::TooManyArguments { expected, actual });
             Err(JmespathError::from_ctx(ctx, reason))
         }
     }
@@ -211,7 +201,7 @@ impl Signature {
             let reason = ErrorReason::Runtime(RuntimeError::InvalidType {
                 expected: validator.to_string(),
                 actual: value.get_type().to_string(),
-                position: position,
+                position,
             });
             Err(JmespathError::from_ctx(ctx, reason))
         }
@@ -545,7 +535,7 @@ impl Function for SortByFn {
             });
             return Err(JmespathError::from_ctx(ctx, reason));
         }
-        mapped.push((vals[0].clone(), first_value.clone()));
+        mapped.push((vals[0].clone(), first_value));
         for (invocation, v) in vals.iter().enumerate().skip(1) {
             let mapped_value = interpret(v, &ast, ctx)?;
             if mapped_value.get_type() != first_type {
@@ -555,7 +545,7 @@ impl Function for SortByFn {
                         expected: format!("expression->{}", first_type),
                         actual: mapped_value.get_type().to_string(),
                         position: 1,
-                        invocation: invocation,
+                        invocation,
                     }),
                 ));
             }

@@ -375,10 +375,10 @@ impl Variable {
     /// Compares two Variable values using a comparator.
     pub fn compare(&self, cmp: &Comparator, value: &Variable) -> Option<bool> {
         // Ordering requires numeric values.
-        if !(*cmp == Comparator::Equal || *cmp == Comparator::NotEqual) {
-            if !self.is_number() || !value.is_number() {
-                return None;
-            }
+        if !(*cmp == Comparator::Equal || *cmp == Comparator::NotEqual)
+            && (!self.is_number() || !value.is_number())
+        {
+            return None;
         }
         match *cmp {
             Comparator::Equal => Some(*self == *value),
@@ -391,7 +391,7 @@ impl Variable {
     }
 
     /// Returns a slice of the variable if the variable is an array.
-    pub fn slice(&self, start: &Option<i32>, stop: &Option<i32>, step: i32) -> Option<Vec<Rcvar>> {
+    pub fn slice(&self, start: Option<i32>, stop: Option<i32>, step: i32) -> Option<Vec<Rcvar>> {
         self.as_array().map(|a| slice(a, start, stop, step))
     }
 }
@@ -414,18 +414,18 @@ impl Variable {
 // Variable slicing implementation
 // ------------------------------------------
 
-fn slice(array: &[Rcvar], start: &Option<i32>, stop: &Option<i32>, step: i32) -> Vec<Rcvar> {
+fn slice(array: &[Rcvar], start: Option<i32>, stop: Option<i32>, step: i32) -> Vec<Rcvar> {
     let mut result = vec![];
     let len = array.len() as i32;
     if len == 0 {
         return result;
     }
-    let a: i32 = match *start {
+    let a: i32 = match start {
         Some(starting_index) => adjust_slice_endpoint(len, starting_index, step),
         _ if step < 0 => len - 1,
         _ => 0,
     };
-    let b: i32 = match *stop {
+    let b: i32 = match stop {
         Some(ending_index) => adjust_slice_endpoint(len, ending_index, step),
         _ if step < 0 => -1,
         _ => len,
@@ -599,7 +599,7 @@ impl<'de> de::Deserializer<'de> for Variable {
                 let len = v.len();
                 visitor.visit_seq(SeqDeserializer {
                     iter: v.into_iter(),
-                    len: len,
+                    len,
                 })
             }
             Variable::Object(v) => visitor.visit_map(MapDeserializer {
@@ -663,7 +663,7 @@ impl<'de> de::Deserializer<'de> for Variable {
 
         visitor.visit_enum(EnumDeserializer {
             val: value,
-            variant: variant,
+            variant,
         })
     }
 
@@ -846,7 +846,7 @@ impl<'de> de::MapAccess<'de> for MapDeserializer {
         match self.iter.next() {
             Some((key, value)) => {
                 self.value = Some(Variable::clone(&value));
-                seed.deserialize(Variable::String(key.to_owned())).map(Some)
+                seed.deserialize(Variable::String(key)).map(Some)
             }
             None => Ok(None),
         }
@@ -900,7 +900,7 @@ impl ser::Serialize for Variable {
             Variable::Bool(v) => serializer.serialize_bool(v),
             Variable::Number(v) => {
                 // Serializes as an integer when the decimal is 0 (i.e., 0.0).
-                if v.floor() == v {
+                if (v.floor() - v).abs() < std::f64::EPSILON {
                     serializer.serialize_i64(v as i64)
                 } else {
                     serializer.serialize_f64(v)

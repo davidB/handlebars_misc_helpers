@@ -26,7 +26,7 @@ pub fn interpret(data: &Rcvar, node: &Ast, ctx: &mut Context) -> SearchResult {
             if idx >= 0 {
                 Ok(data.get_index(idx as usize))
             } else {
-                Ok(data.get_negative_index((-1 * idx) as usize))
+                Ok(data.get_negative_index(idx.abs() as usize))
             }
         }
         Ast::Or {
@@ -165,8 +165,8 @@ pub fn interpret(data: &Rcvar, node: &Ast, ctx: &mut Context) -> SearchResult {
         }
         Ast::Expref { ref ast, .. } => Ok(Rcvar::new(Variable::Expref(*ast.clone()))),
         Ast::Slice {
-            ref start,
-            ref stop,
+            start,
+            stop,
             step,
             offset,
         } => {
