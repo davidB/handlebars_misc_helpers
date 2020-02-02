@@ -17,6 +17,8 @@ pub mod file_helpers;
 #[cfg(feature = "http")]
 pub mod http_helpers;
 #[cfg(feature = "json")]
+mod jmespath;
+#[cfg(feature = "json")]
 pub mod json_helpers;
 pub mod path_helpers;
 #[cfg(feature = "string")]

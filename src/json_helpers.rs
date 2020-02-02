@@ -1,9 +1,9 @@
+use crate::jmespath;
+use crate::jmespath::ToJmespath;
 use handlebars::{
     handlebars_helper, Context, Handlebars, Helper, HelperDef, RenderContext, RenderError,
     ScopedJson,
 };
-use jmespath;
-use jmespath::ToJmespath;
 use serde::Serialize;
 use serde_json;
 use serde_json::Value as Json;
