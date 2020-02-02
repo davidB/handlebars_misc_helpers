@@ -5,7 +5,7 @@ extern crate serde_json;
 
 use serde::de::IntoDeserializer;
 use serde::{de, ser};
-use serde_json::error::{Error, ErrorCode};
+use serde_json::error::Error;
 use serde_json::value::Value;
 use std::cmp::{max, Ordering};
 use std::collections::BTreeMap;
@@ -1218,7 +1218,7 @@ impl ser::SerializeMap for MapState {
     {
         match to_variable(key)? {
             Variable::String(s) => self.next_key = Some(s),
-            _ => return Err(Error::syntax(ErrorCode::KeyMustBeAString, 0, 0)),
+            _ => return Err(de::Error::custom("KeyMustBeAString")),
         };
         Ok(())
     }
