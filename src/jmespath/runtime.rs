@@ -37,12 +37,12 @@ impl Runtime {
         self.functions.insert(name.to_owned(), f);
     }
 
-    /// Removes a function from the runtime.
-    ///
-    /// Returns the function that was removed if it was found.
-    pub fn deregister_function(&mut self, name: &str) -> Option<Box<dyn Function>> {
-        self.functions.remove(name)
-    }
+    // /// Removes a function from the runtime.
+    // ///
+    // /// Returns the function that was removed if it was found.
+    // pub fn deregister_function(&mut self, name: &str) -> Option<Box<dyn Function>> {
+    //     self.functions.remove(name)
+    // }
 
     /// Gets a function by name from the runtime.
     #[inline]

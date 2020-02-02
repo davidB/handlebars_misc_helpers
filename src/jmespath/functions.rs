@@ -100,18 +100,18 @@ pub struct CustomFunction {
     f: Box<dyn Fn(&[Rcvar], &mut Context) -> SearchResult + Sync>,
 }
 
-impl CustomFunction {
-    /// Creates a new custom function.
-    pub fn new(
-        fn_signature: Signature,
-        f: Box<dyn Fn(&[Rcvar], &mut Context) -> SearchResult + Sync>,
-    ) -> CustomFunction {
-        CustomFunction {
-            signature: fn_signature,
-            f: f,
-        }
-    }
-}
+// impl CustomFunction {
+//     /// Creates a new custom function.
+//     pub fn new(
+//         fn_signature: Signature,
+//         f: Box<dyn Fn(&[Rcvar], &mut Context) -> SearchResult + Sync>,
+//     ) -> CustomFunction {
+//         CustomFunction {
+//             signature: fn_signature,
+//             f: f,
+//         }
+//     }
+// }
 
 impl Function for CustomFunction {
     fn evaluate(&self, args: &[Rcvar], ctx: &mut Context) -> SearchResult {

@@ -397,12 +397,12 @@ impl<'a> Expression<'a> {
         &self.expression
     }
 
-    /// Returns the AST of the parsed JMESPath expression.
-    ///
-    /// This can be useful for debugging purposes, caching, etc.
-    pub fn as_ast(&self) -> &Ast {
-        &self.ast
-    }
+    // /// Returns the AST of the parsed JMESPath expression.
+    // ///
+    // /// This can be useful for debugging purposes, caching, etc.
+    // pub fn as_ast(&self) -> &Ast {
+    //     &self.ast
+    // }
 }
 
 impl<'a> fmt::Display for Expression<'a> {
