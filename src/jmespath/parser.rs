@@ -6,16 +6,16 @@
 
 use std::collections::VecDeque;
 
-use {JmespathError, ErrorReason};
-use ast::{Ast, KeyValuePair, Comparator};
-use lexer::{tokenize, Token, TokenTuple};
+use super::ast::{Ast, Comparator, KeyValuePair};
+use super::lexer::{tokenize, Token, TokenTuple};
+use super::{ErrorReason, JmespathError};
 
 /// Result of parsing an expression.
 pub type ParseResult = Result<Ast, JmespathError>;
 
 /// Parses a JMESPath expression into an AST.
 pub fn parse(expr: &str) -> ParseResult {
-    let tokens = try!(tokenize(expr));
+    let tokens = tokenize(expr)?;
     Parser::new(tokens, expr).parse()
 }
 
@@ -45,14 +45,13 @@ impl<'a> Parser<'a> {
 
     #[inline]
     fn parse(&mut self) -> ParseResult {
-        self.expr(0)
-            .and_then(|result| {
-                // After parsing the expr, we should reach the end of the stream.
-                match self.peek(0) {
-                    &Token::Eof => Ok(result),
-                    t @ _ => Err(self.err(t, "Did not parse the complete expression", true)),
-                }
-            })
+        self.expr(0).and_then(|result| {
+            // After parsing the expr, we should reach the end of the stream.
+            match self.peek(0) {
+                &Token::Eof => Ok(result),
+                t @ _ => Err(self.err(t, "Did not parse the complete expression", true)),
+            }
+        })
     }
 
     #[inline]
@@ -96,7 +95,7 @@ impl<'a> Parser<'a> {
     fn expr(&mut self, rbp: usize) -> ParseResult {
         let mut left = self.nud();
         while rbp < self.peek(0).lbp() {
-            left = self.led(Box::new(try!(left)));
+            left = self.led(Box::new(left?));
         }
         left
     }
@@ -105,50 +104,39 @@ impl<'a> Parser<'a> {
         let (offset, token) = self.advance_with_pos();
         match token {
             Token::At => Ok(Ast::Identity { offset: offset }),
-            Token::Identifier(value) => {
-                Ok(Ast::Field {
+            Token::Identifier(value) => Ok(Ast::Field {
+                name: value,
+                offset: offset,
+            }),
+            Token::QuotedIdentifier(value) => match self.peek(0) {
+                &Token::Lparen => {
+                    let message = "Quoted strings can't be a function name";
+                    Err(self.err(&Token::Lparen, message, true))
+                }
+                _ => Ok(Ast::Field {
                     name: value,
                     offset: offset,
-                })
-            }
-            Token::QuotedIdentifier(value) => {
-                match self.peek(0) {
-                    &Token::Lparen => {
-                        let message = "Quoted strings can't be a function name";
-                        Err(self.err(&Token::Lparen, message, true))
-                    }
-                    _ => {
-                        Ok(Ast::Field {
-                            name: value,
-                            offset: offset,
-                        })
-                    }
-                }
-            }
+                }),
+            },
             Token::Star => self.parse_wildcard_values(Box::new(Ast::Identity { offset: offset })),
-            Token::Literal(value) => {
-                Ok(Ast::Literal {
-                    value: value,
-                    offset: offset,
-                })
-            }
-            Token::Lbracket => {
-                match self.peek(0) {
-                    &Token::Number(_) |
-                    &Token::Colon => self.parse_index(),
-                    &Token::Star if self.peek(1) == &Token::Rbracket => {
-                        self.advance();
-                        self.parse_wildcard_index(Box::new(Ast::Identity { offset: offset }))
-                    }
-                    _ => self.parse_multi_list(),
+            Token::Literal(value) => Ok(Ast::Literal {
+                value: value,
+                offset: offset,
+            }),
+            Token::Lbracket => match self.peek(0) {
+                &Token::Number(_) | &Token::Colon => self.parse_index(),
+                &Token::Star if self.peek(1) == &Token::Rbracket => {
+                    self.advance();
+                    self.parse_wildcard_index(Box::new(Ast::Identity { offset: offset }))
                 }
-            }
+                _ => self.parse_multi_list(),
+            },
             Token::Flatten => self.parse_flatten(Box::new(Ast::Identity { offset: offset })),
             Token::Lbrace => {
                 let mut pairs = vec![];
                 loop {
                     // Requires at least on key value pair.
-                    pairs.push(try!(self.parse_kvp()));
+                    pairs.push(self.parse_kvp()?);
                     match self.advance() {
                         // Terminal condition is the Rbrace token
                         Token::Rbrace => break,
@@ -163,21 +151,19 @@ impl<'a> Parser<'a> {
                 })
             }
             t @ Token::Ampersand => {
-                let rhs = try!(self.expr(t.lbp()));
+                let rhs = self.expr(t.lbp())?;
                 Ok(Ast::Expref {
                     ast: Box::new(rhs),
                     offset: offset,
                 })
             }
-            t @ Token::Not => {
-                Ok(Ast::Not {
-                    node: Box::new(try!(self.expr(t.lbp()))),
-                    offset: offset,
-                })
-            }
+            t @ Token::Not => Ok(Ast::Not {
+                node: Box::new(self.expr(t.lbp())?),
+                offset: offset,
+            }),
             Token::Filter => self.parse_filter(Box::new(Ast::Identity { offset: offset })),
             Token::Lparen => {
-                let result = try!(self.expr(0));
+                let result = self.expr(0)?;
                 match self.advance() {
                     Token::Rparen => Ok(result),
                     ref t @ _ => Err(self.err(t, "Expected ')' to close '('", false)),
@@ -197,7 +183,7 @@ impl<'a> Parser<'a> {
                     self.parse_wildcard_values(left)
                 } else {
                     let offset = offset;
-                    let rhs = try!(self.parse_dot(t.lbp()));
+                    let rhs = self.parse_dot(t.lbp())?;
                     Ok(Ast::Subexpr {
                         offset: offset,
                         lhs: left,
@@ -207,18 +193,15 @@ impl<'a> Parser<'a> {
             }
             Token::Lbracket => {
                 match match self.peek(0) {
-                    &Token::Number(_) |
-                    &Token::Colon => true,
+                    &Token::Number(_) | &Token::Colon => true,
                     &Token::Star => false,
                     t @ _ => return Err(self.err(t, "Expected number, ':', or '*'", true)),
                 } {
-                    true => {
-                        Ok(Ast::Subexpr {
-                            offset: offset,
-                            lhs: left,
-                            rhs: Box::new(try!(self.parse_index())),
-                        })
-                    }
+                    true => Ok(Ast::Subexpr {
+                        offset: offset,
+                        lhs: left,
+                        rhs: Box::new(self.parse_index()?),
+                    }),
                     false => {
                         self.advance();
                         self.parse_wildcard_index(left)
@@ -227,7 +210,7 @@ impl<'a> Parser<'a> {
             }
             t @ Token::Or => {
                 let offset = offset;
-                let rhs = try!(self.expr(t.lbp()));
+                let rhs = self.expr(t.lbp())?;
                 Ok(Ast::Or {
                     offset: offset,
                     lhs: left,
@@ -236,7 +219,7 @@ impl<'a> Parser<'a> {
             }
             t @ Token::And => {
                 let offset = offset;
-                let rhs = try!(self.expr(t.lbp()));
+                let rhs = self.expr(t.lbp())?;
                 Ok(Ast::And {
                     offset: offset,
                     lhs: left,
@@ -245,25 +228,21 @@ impl<'a> Parser<'a> {
             }
             t @ Token::Pipe => {
                 let offset = offset;
-                let rhs = try!(self.expr(t.lbp()));
+                let rhs = self.expr(t.lbp())?;
                 Ok(Ast::Subexpr {
                     offset: offset,
                     lhs: left,
                     rhs: Box::new(rhs),
                 })
             }
-            Token::Lparen => {
-                match *left {
-                    Ast::Field { name: v, .. } => {
-                        Ok(Ast::Function {
-                            offset: offset,
-                            name: v,
-                            args: try!(self.parse_list(Token::Rparen)),
-                        })
-                    }
-                    _ => Err(self.err(self.peek(0), "Invalid function name", true)),
-                }
-            }
+            Token::Lparen => match *left {
+                Ast::Field { name: v, .. } => Ok(Ast::Function {
+                    offset: offset,
+                    name: v,
+                    args: self.parse_list(Token::Rparen)?,
+                }),
+                _ => Err(self.err(self.peek(0), "Invalid function name", true)),
+            },
             Token::Flatten => self.parse_flatten(left),
             Token::Filter => self.parse_filter(left),
             Token::Eq => self.parse_comparator(Comparator::Equal, left),
@@ -278,13 +257,12 @@ impl<'a> Parser<'a> {
 
     fn parse_kvp(&mut self) -> Result<KeyValuePair, JmespathError> {
         match self.advance() {
-            Token::Identifier(value) |
-            Token::QuotedIdentifier(value) => {
+            Token::Identifier(value) | Token::QuotedIdentifier(value) => {
                 if self.peek(0) == &Token::Colon {
                     self.advance();
                     Ok(KeyValuePair {
                         key: value,
-                        value: try!(self.expr(0)),
+                        value: self.expr(0)?,
                     })
                 } else {
                     Err(self.err(self.peek(0), "Expected ':' to follow key", true))
@@ -299,11 +277,11 @@ impl<'a> Parser<'a> {
     /// returns a truthy value, then the value is yielded by the projection.
     fn parse_filter(&mut self, lhs: Box<Ast>) -> ParseResult {
         // Parse the LHS of the condition node.
-        let condition_lhs = Box::new(try!(self.expr(0)));
+        let condition_lhs = Box::new(self.expr(0)?);
         // Eat the closing bracket.
         match self.advance() {
             Token::Rbracket => {
-                let condition_rhs = Box::new(try!(self.projection_rhs(Token::Filter.lbp())));
+                let condition_rhs = Box::new(self.projection_rhs(Token::Filter.lbp())?);
                 Ok(Ast::Projection {
                     offset: self.offset,
                     lhs: lhs,
@@ -319,7 +297,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_flatten(&mut self, lhs: Box<Ast>) -> ParseResult {
-        let rhs = Box::new(try!(self.projection_rhs(Token::Flatten.lbp())));
+        let rhs = Box::new(self.projection_rhs(Token::Flatten.lbp())?);
         Ok(Ast::Projection {
             offset: self.offset,
             lhs: Box::new(Ast::Flatten {
@@ -332,7 +310,7 @@ impl<'a> Parser<'a> {
 
     /// Parses a comparator token into a Comparison (e.g., foo == bar)
     fn parse_comparator(&mut self, cmp: Comparator, lhs: Box<Ast>) -> ParseResult {
-        let rhs = Box::new(try!(self.expr(Token::Eq.lbp())));
+        let rhs = Box::new(self.expr(Token::Eq.lbp())?);
         Ok(Ast::Comparison {
             offset: self.offset,
             comparator: cmp,
@@ -345,11 +323,11 @@ impl<'a> Parser<'a> {
     fn parse_dot(&mut self, lbp: usize) -> ParseResult {
         match match self.peek(0) {
             &Token::Lbracket => true,
-            &Token::Identifier(_) |
-            &Token::QuotedIdentifier(_) |
-            &Token::Star |
-            &Token::Lbrace |
-            &Token::Ampersand => false,
+            &Token::Identifier(_)
+            | &Token::QuotedIdentifier(_)
+            | &Token::Star
+            | &Token::Lbrace
+            | &Token::Ampersand => false,
             t @ _ => {
                 return Err(self.err(t, "Expected identifier, '*', '{', '[', '&', or '[?'", true))
             }
@@ -369,11 +347,13 @@ impl<'a> Parser<'a> {
             &Token::Dot => true,
             &Token::Lbracket | &Token::Filter => false,
             ref t @ _ if t.lbp() < PROJECTION_STOP => {
-                return Ok(Ast::Identity { offset: self.offset });
-            },
+                return Ok(Ast::Identity {
+                    offset: self.offset,
+                });
+            }
             ref t @ _ => {
                 return Err(self.err(t, "Expected '.', '[', or '[?'", true));
-            },
+            }
         } {
             true => {
                 self.advance();
@@ -387,7 +367,7 @@ impl<'a> Parser<'a> {
     fn parse_wildcard_index(&mut self, lhs: Box<Ast>) -> ParseResult {
         match self.advance() {
             Token::Rbracket => {
-                let rhs = Box::new(try!(self.projection_rhs(Token::Star.lbp())));
+                let rhs = Box::new(self.projection_rhs(Token::Star.lbp())?);
                 Ok(Ast::Projection {
                     offset: self.offset,
                     lhs: lhs,
@@ -400,7 +380,7 @@ impl<'a> Parser<'a> {
 
     /// Creates a projection for "*"
     fn parse_wildcard_values(&mut self, lhs: Box<Ast>) -> ParseResult {
-        let rhs = Box::new(try!(self.projection_rhs(Token::Star.lbp())));
+        let rhs = Box::new(self.projection_rhs(Token::Star.lbp())?);
         Ok(Ast::Projection {
             offset: self.offset,
             lhs: Box::new(Ast::ObjectValues {
@@ -411,7 +391,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// Parses [0], [::-1], [0:-1], [0:1], etc...
+    /// Parses [0], [::-1], [0:-1], [0:1], etc..=
     fn parse_index(&mut self) -> ParseResult {
         let mut parts = [None, None, None];
         let mut pos = 0;
@@ -431,9 +411,7 @@ impl<'a> Parser<'a> {
                 Token::Colon => {
                     pos += 1;
                     match self.peek(0) {
-                        &Token::Number(_) |
-                        &Token::Colon |
-                        &Token::Rbracket => continue,
+                        &Token::Number(_) | &Token::Colon | &Token::Rbracket => continue,
                         ref t @ _ => return Err(self.err(t, "Expected number, ':', or ']'", true)),
                     };
                 }
@@ -457,7 +435,7 @@ impl<'a> Parser<'a> {
                     stop: parts[1],
                     step: parts[2].unwrap_or(1),
                 }),
-                rhs: Box::new(try!(self.projection_rhs(Token::Star.lbp()))),
+                rhs: Box::new(self.projection_rhs(Token::Star.lbp())?),
             })
         }
     }
@@ -466,7 +444,7 @@ impl<'a> Parser<'a> {
     fn parse_multi_list(&mut self) -> ParseResult {
         Ok(Ast::MultiList {
             offset: self.offset,
-            elements: try!(self.parse_list(Token::Rbracket)),
+            elements: self.parse_list(Token::Rbracket)?,
         })
     }
 
@@ -480,7 +458,7 @@ impl<'a> Parser<'a> {
     fn parse_list(&mut self, closing: Token) -> Result<Vec<Ast>, JmespathError> {
         let mut nodes = vec![];
         while self.peek(0) != &closing {
-            nodes.push(try!(self.expr(0)));
+            nodes.push(self.expr(0)?);
             // Skip commas
             if self.peek(0) == &Token::Comma {
                 self.advance();
