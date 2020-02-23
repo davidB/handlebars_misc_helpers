@@ -1,8 +1,9 @@
 use crate::jmespath;
 use crate::jmespath::ToJmespath;
+use crate::outputs::StringOutput;
 use handlebars::{
-    handlebars_helper, Context, Handlebars, Helper, HelperDef, RenderContext, RenderError,
-    ScopedJson,
+    handlebars_helper, Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext,
+    RenderError, Renderable, ScopedJson,
 };
 use serde::Serialize;
 use serde_json;
@@ -182,12 +183,76 @@ impl HelperDef for json_str_query_fct {
     }
 }
 
+fn from_json_block<'reg, 'rc>(
+    h: &Helper<'reg, 'rc>,
+    r: &'reg Handlebars,
+    ctx: &'rc Context,
+    rc: &mut RenderContext<'reg, 'rc>,
+    out: &mut dyn Output,
+) -> HelperResult {
+    let format = find_data_format(h)?;
+    let mut content = StringOutput::new();
+    h.template()
+        .map(|t| t.render(r, ctx, rc, &mut content))
+        .unwrap_or(Ok(()))?;
+    let res = match format {
+        // HACK for toml because
+        // see:
+        // - [ValueAfterTable error · Issue #336 · alexcrichton/toml-rs](https://github.com/alexcrichton/toml-rs/issues/336)
+        // - [ValueAfterTable fix by PSeitz · Pull Request #339 · alexcrichton/toml-rs](https://github.com/alexcrichton/toml-rs/pull/339)
+        // workaround is to use serde_transcode like [PSeitz/toml-to-json-online-converter: toml to json and json to toml online converter - written in rust with wasm](https://github.com/PSeitz/toml-to-json-online-converter)
+        DataFormat::Toml => {
+            let mut res = String::new();
+            let input = content.into_string()?;
+            let mut deserializer = serde_json::Deserializer::from_str(&input);
+            let mut serializer = toml::ser::Serializer::new(&mut res);
+            serde_transcode::transcode(&mut deserializer, &mut serializer)
+                .map_err(RenderError::with)?;
+            res
+        }
+        DataFormat::TomlPretty => {
+            let mut res = String::new();
+            let input = content.into_string()?;
+            let mut deserializer = serde_json::Deserializer::from_str(&input);
+            let mut serializer = toml::ser::Serializer::pretty(&mut res);
+            serde_transcode::transcode(&mut deserializer, &mut serializer)
+                .map_err(RenderError::with)?;
+            res
+        }
+        _ => {
+            let data = DataFormat::Json.read_string(&content.into_string()?)?;
+            format.write_string(&data)?
+        }
+    };
+
+    out.write(&res).map_err(RenderError::with)
+}
+
+fn to_json_block<'reg, 'rc>(
+    h: &Helper<'reg, 'rc>,
+    r: &'reg Handlebars,
+    ctx: &'rc Context,
+    rc: &mut RenderContext<'reg, 'rc>,
+    out: &mut dyn Output,
+) -> HelperResult {
+    let format = find_data_format(h)?;
+    let mut content = StringOutput::new();
+    h.template()
+        .map(|t| t.render(r, ctx, rc, &mut content))
+        .unwrap_or(Ok(()))?;
+    let data = format.read_string(&content.into_string()?)?;
+    let res = DataFormat::JsonPretty.write_string(&data)?;
+    out.write(&res).map_err(RenderError::with)
+}
+
 handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(RenderError::with)?);
 
 pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
     vec![
         { handlebars.register_helper("json_to_str", Box::new(json_to_str_fct)) },
         { handlebars.register_helper("str_to_json", Box::new(str_to_json_fct)) },
+        { handlebars.register_helper("from_json", Box::new(from_json_block)) },
+        { handlebars.register_helper("to_json", Box::new(to_json_block)) },
         { handlebars.register_helper("json_query", Box::new(json_query_fct)) },
         { handlebars.register_helper("json_str_query", Box::new(json_str_query_fct)) },
     ]
@@ -412,6 +477,136 @@ mod tests {
                 r##"{{ json_str_query "foo.bar.baz" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
                 "true",
             )
+        ]
+    }
+
+    #[test]
+    fn test_block_to_json() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{#to_json}}{{/to_json}}"##, r##""##),
+            (
+                r##"{{#to_json}}{"foo":{"bar":{"baz":true}}}{{/to_json}}"##,
+                &normalize_nl(indoc!(
+                    r##"{
+                      "foo": {
+                        "bar": {
+                          "baz": true
+                        }
+                      }
+                    }"##
+                )),
+            ),
+            (
+                &normalize_nl(indoc!(
+                    r##"{{#to_json format="yaml"}}
+                    foo:
+                        bar:
+                            baz: true
+                    {{/to_json}}"##
+                )),
+                &normalize_nl(indoc!(
+                    r##"{
+                      "foo": {
+                        "bar": {
+                          "baz": true
+                        }
+                      }
+                    }"##
+                )),
+            ),
+            (
+                &normalize_nl(indoc!(
+                    r##"{{#to_json format="toml"}}
+                    [foo]
+                    bar = { baz = true }
+                    hello = "1.2.3"
+                    {{/to_json}}"##
+                )),
+                &normalize_nl(indoc!(
+                    r##"{
+                      "foo": {
+                        "bar": {
+                          "baz": true
+                        },
+                        "hello": "1.2.3"
+                      }
+                    }"##
+                )),
+            ),
+        ]
+    }
+
+    #[test]
+    fn test_block_from_json() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{#from_json}}{{/from_json}}"##, r##""##),
+            (
+                r##"{{#from_json}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
+                r##"{"foo":{"bar":{"baz":true}}}"##
+                // &normalize_nl(indoc!(
+                //     r##"{
+                //       "foo": {
+                //         "bar": {
+                //           "baz": true
+                //         }
+                //       }
+                //     }"##
+                // )),
+            ),
+            (
+                r##"{{#from_json format="json_pretty"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
+                &normalize_nl(indoc!(
+                    r##"{
+                      "foo": {
+                        "bar": {
+                          "baz": true
+                        }
+                      }
+                    }"##
+                )),
+            ),
+            (
+                r##"{{#from_json format="yaml"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
+                &normalize_nl(indoc!(
+                    r##"
+                    foo:
+                      bar:
+                        baz: true"##
+                ))
+            ),
+            (
+                r##"{{#from_json format="toml"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
+                &normalize_nl(indoc!(
+                    r##"
+                    [foo.bar]
+                    baz = true
+                    "##
+                )),
+            ),
+            (
+                r##"{{#from_json format="toml"}}{"foo":{"hello":"1.2.3", "bar":{"baz":true} }}{{/from_json}}"##,
+                &normalize_nl(indoc!(
+                    r##"
+                    [foo]
+                    hello = "1.2.3"
+
+                    [foo.bar]
+                    baz = true
+                    "##
+                )),
+            ),
+            (
+                r##"{{#from_json format="toml_pretty"}}{"foo":{"hello":"1.2.4", "bar":{"baz":true} }}{{/from_json}}"##,
+                &normalize_nl(indoc!(
+                    r##"
+                    [foo]
+                    hello = '1.2.4'
+
+                    [foo.bar]
+                    baz = true
+                    "##
+                )),
+            ),
         ]
     }
 }

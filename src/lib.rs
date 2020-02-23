@@ -20,6 +20,7 @@ pub mod http_helpers;
 mod jmespath;
 #[cfg(feature = "json")]
 pub mod json_helpers;
+pub mod outputs;
 pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;

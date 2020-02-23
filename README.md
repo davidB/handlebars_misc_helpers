@@ -8,7 +8,7 @@
 [![Actions Status](https://github.com/davidB/handlebars_misc_helpers/workflows/ci-flow/badge.svg)](https://github.com/davidB/handlebars_misc_helpers/actions)
 [![test coverage](https://codecov.io/gh/davidB/handlebars_misc_helpers/branch/master/graph/badge.svg)](https://codecov.io/gh/davidB/handlebars_misc_helpers)
 
-A collection of helpers for handlebars (rust).
+A collection of helpers for handlebars (rust) to manage string, json, yaml, toml, path, file, http request.
 
 Helpers extend the template to generate or to transform content.
 Few helpers are included, but if you need more helpers, ask via an issue or a PR.
@@ -40,7 +40,7 @@ see [Handlebars templating language](https://handlebarsjs.com/)
   - [Path extraction](#path-extraction)
   - [File](#file)
   - [Environment variable](#environment-variable)
-  - [JSON &amp; YAML &amp; TOML](#json-amp-yaml-amp-toml)
+  - [JSON & YAML & TOML](#json--yaml--toml)
   - [Assign](#assign)
 
 <!-- /TOC -->
@@ -206,6 +206,63 @@ The optional requested `format`, is the format of the string with data:
 | `{{ json_str_query "foo.bar.baz" "{\"foo\":{\"bar\":{\"baz\":true}}}" }}`                          | `true`                          |
 | `{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}`                             | `bar:\n  baz: true\n`           |
 | `{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" format="json") format="yaml"}}` | `foo:\n  bar:\n    baz: true\n` |
+
+Block
+
+<table>
+<tr>
+<td><pre><code>{{#from_json format="toml"}}
+{"foo": {"hello":"1.2.3", "bar":{"baz":true} } }
+{{/from_json}}
+</code></pre>
+</td>
+<td><pre><code>[foo]
+hello = "1.2.3"
+
+[foo.bar]
+baz = true</code></pre></td>
+</tr>
+<tr>
+<td><pre><code>{{#to_json format="toml"}}
+[foo]
+bar = { baz = true }
+hello = "1.2.3"
+{{/to_json}}</code></pre>
+</td>
+<td><pre><code>{
+  "foo": {
+    "bar": {
+      "baz": true
+    },
+    "hello": "1.2.3"
+  }
+}</code></pre></td>
+</tr>
+<tr>
+<td><pre><code>{{#from_json format="toml"}}
+{"foo":{"bar":{"baz":true}}}
+{{/from_json}}</code></pre>
+</td>
+<td><pre><code>foo:
+  bar:
+    baz: true</code></pre></td>
+</tr>
+<tr>
+<td><pre><code>{{#to_json format="yaml"}}
+foo:
+    bar:
+        baz: true
+{{/to_json}}</code></pre>
+</td>
+<td><pre><code>{
+  "foo": {
+    "bar": {
+      "baz": true
+    }
+  }
+}</code></pre></td>
+</tr>
+</table>
 
 Note: YAML & TOML content are used as input and output format for json data. So capabilities are limited to what json support (eg. no date-time type like in TOML).
 
