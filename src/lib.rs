@@ -87,6 +87,10 @@ mod tests {
         Ok(())
     }
 
+    pub(crate) fn normalize_nl(s: &str) -> String {
+        s.replace("\r\n", "\n").replace("\r", "")
+    }
+
     #[macro_export]
     macro_rules! assert_renders {
         ($($arg:expr),+$(,)?) => {{

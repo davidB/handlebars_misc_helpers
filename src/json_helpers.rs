@@ -265,6 +265,7 @@ pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDe
 mod tests {
     use super::*;
     use crate::assert_renders;
+    use crate::tests::normalize_nl;
     use indoc::indoc;
     use spectral::prelude::*;
     use std::error::Error;
@@ -320,10 +321,6 @@ mod tests {
         Ok(())
     }
 
-    fn normalize_nl(s: &str) -> String {
-        s.replace("\r\n", "\n").replace("\r", "")
-    }
-
     fn assert_data_format_write_eq_read(f: DataFormat, data: &str) -> Result<(), Box<dyn Error>> {
         let data = normalize_nl(data);
         let actual = normalize_nl(&f.write_string(&f.read_string(&data)?)?);
@@ -336,7 +333,7 @@ mod tests {
         assert_data_format_write_eq_read(DataFormat::Json, r##"{"foo":{"bar":{"baz":true}}}"##)?;
         assert_data_format_write_eq_read(
             DataFormat::JsonPretty,
-            indoc!(
+            &normalize_nl(indoc!(
                 r##"{
                   "foo": {
                     "bar": {
@@ -344,34 +341,34 @@ mod tests {
                     }
                   }
                 }"##
-            ),
+            )),
         )?;
         assert_data_format_write_eq_read(
             DataFormat::Yaml,
-            indoc!(
+            &normalize_nl(indoc!(
                 r##"
                 foo:
                   bar:
                     baz: true"##
-            ),
+            )),
         )?;
         assert_data_format_write_eq_read(
             DataFormat::Toml,
-            indoc!(
+            &normalize_nl(indoc!(
                 r##"
                 [foo.bar]
                 baz = true
                 "##
-            ),
+            )),
         )?;
         assert_data_format_write_eq_read(
             DataFormat::TomlPretty,
-            indoc!(
+            &normalize_nl(indoc!(
                 r##"
                 [foo.bar]
                 baz = true
                 "##
-            ),
+            )),
         )?;
         Ok(())
     }
@@ -467,11 +464,11 @@ mod tests {
         assert_renders![
             (
                 r##"{{ json_str_query "foo" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
-                indoc!(
+                &normalize_nl(indoc!(
                     "[bar]
                     baz = true
                     "
-                ),
+                )),
             ),
             (
                 r##"{{ json_str_query "foo.bar.baz" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
