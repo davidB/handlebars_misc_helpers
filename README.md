@@ -1,4 +1,4 @@
-# handlebars_misc_helpers
+# handlebars_misc_helpers <!-- omit in toc -->
 
 [![crates license](https://img.shields.io/crates/l/handlebars_misc_helpers.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 [![crate version](https://img.shields.io/crates/v/handlebars_misc_helpers.svg)](https://crates.io/crates/handlebars_misc_helpers)
@@ -32,16 +32,29 @@ To chain helpers, use parenthesis:
 
 see [Handlebars templating language](https://handlebarsjs.com/)
 
+To not "import" useless dependencies, use crate's features:
+
+```toml
+[features]
+default = [ "string", "http", "json", "jsonnet" ]
+string = [ "Inflector", "enquote" ]
+http = [ "attohttpc" ]
+json = [ "lazy_static", "serde", "serde_json", "serde-transcode", "serde_yaml", "toml" ]
+jsonnet = [ "jsonnet-rs" ]
+```
+
 <!-- TOC depthFrom:2 -->
 
-- [handlebars_misc_helpers](#handlebarsmischelpers)
-  - [String transformation](#string-transformation)
-  - [Http content](#http-content)
-  - [Path extraction](#path-extraction)
-  - [File](#file)
-  - [Environment variable](#environment-variable)
-  - [JSON & YAML & TOML](#json--yaml--toml)
-  - [Assign](#assign)
+- [String transformation](#string-transformation)
+- [Http content](#http-content)
+- [Path extraction](#path-extraction)
+- [File](#file)
+- [Environment variable](#environment-variable)
+- [JSON & YAML & TOML](#json--yaml--toml)
+  - [Helpers](#helpers)
+  - [Blocks](#blocks)
+  - [Edition via jsonnet](#edition-via-jsonnet)
+- [Assign](#assign)
 
 <!-- /TOC -->
 
@@ -109,7 +122,7 @@ Helper able to get environment variables.
 | ----------- | ---------------- |
 | env_var     | `env_var "HOME"` |
 
-Specials environment variables are predefined (some of them come from [std::env::consts - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
+Specials environment variables are predefined (some of them come from [`std::env::consts` - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
 
 <table>
     <thead>
@@ -171,18 +184,21 @@ Specials environment variables are predefined (some of them come from [std::env:
             <li>android</li>
             <li>windows</li>
         </ul></td></tr>
-        <tr><td><code>"USERNAME"</code></td><td>try to find the current username, in the order:<ol>
+        <tr>
+          <td><code>"USERNAME"</code></td>
+          <td>try to find the current username, in the order:<ol>
             <li>environment variable <code>"USERNAME"</code></li>
             <li>environment variable <code>"username"</code></li>
             <li>environment variable <code>"USER"</code></li>
             <li>environment variable <code>"user"</code></li>
-        </ol></td></tr>
+          </ol></td>
+        </tr>
     </tbody>
 </table>
 
 ## JSON & YAML & TOML
 
-helpers:
+### Helpers
 
 - `json_query query:String data:Json`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`.
 - `json_str_query query:String data:String`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`, data follows the requested `format`.
@@ -207,7 +223,7 @@ The optional requested `format`, is the format of the string with data:
 | `{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}`                             | `bar:\n  baz: true\n`           |
 | `{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" format="json") format="yaml"}}` | `foo:\n  bar:\n    baz: true\n` |
 
-Block
+### Blocks
 
 <table>
 <tr>
