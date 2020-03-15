@@ -95,15 +95,17 @@ mod tests {
     macro_rules! assert_renders {
         ($($arg:expr),+$(,)?) => {{
             use std::collections::HashMap;
-            use spectral::prelude::*;
+            //use spectral::prelude::*;
+            use pretty_assertions::assert_eq;
             let vs: HashMap<String, String> = HashMap::new();
             let mut hbs = $crate::new_hbs();
             $({
                 let sample: (&str, &str) = $arg;
                 hbs.register_template_string(&sample.0, &sample.0).expect("register_template_string");
-                assert_that!(hbs.render(&sample.0, &vs).expect("render"))
-                    .named(sample.0)
-                    .is_equal_to(sample.1.to_owned());
+                // assert_that!(hbs.render(&sample.0, &vs).expect("render"))
+                //     .named(sample.0)
+                //     .is_equal_to(sample.1.to_owned());
+                assert_eq!(hbs.render(&sample.0, &vs).expect("render"), sample.1.to_owned());
             })*
             Ok(())
         }}

@@ -32,6 +32,7 @@ enquote = { version = "^1.0", optional = true }
 spectral = "0.6.0"
 indoc = "0.3"
 tempfile = "3.1.0"
+pretty_assertions = "0.6.1"
 
 [features]
 default = [ "string", "http", "json" ]
