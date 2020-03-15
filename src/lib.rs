@@ -20,6 +20,8 @@ pub mod http_helpers;
 mod jmespath;
 #[cfg(feature = "json")]
 pub mod json_helpers;
+#[cfg(feature = "jsonnet")]
+pub mod jsonnet_helpers;
 pub mod outputs;
 pub mod path_helpers;
 #[cfg(feature = "string")]
@@ -56,6 +58,8 @@ pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDe
         env_helpers::register(handlebars),
         #[cfg(feature = "json")]
         json_helpers::register(handlebars),
+        #[cfg(feature = "jsonnet")]
+        jsonnet_helpers::register(handlebars),
         assign_helpers::register(handlebars),
         file_helpers::register(handlebars),
     ]

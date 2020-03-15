@@ -266,6 +266,40 @@ foo:
 
 Note: YAML & TOML content are used as input and output format for json data. So capabilities are limited to what json support (eg. no date-time type like in TOML).
 
+### Edition via jsonnet
+
+For more advanced edition of json, you can use jsonnet.
+
+> A data templating language for app and tool developers
+
+- See the doc of [jsonnet](https://jsonnet.org/learning/tutorial.html) for more samples, syntax info,...
+- This block can be combined with conversion helper/block for YAML & TOML to provide edition capabilities for those format
+- the output should a valid json, except if `string_output = false` is set as parameter of the block.
+
+<table>
+<tr>
+<td><pre><code>{{#jsonnet}}
+local v = {"foo":{"bar":{"baz":false}}};
+v {
+  "foo" +: {
+      "bar" +: {
+          "baz2": true
+      }
+  }
+}
+{{/jsonnet}}</code></pre>
+</td>
+<td><pre><code>{
+  "foo": {
+      "bar": {
+          "baz": false,
+          "baz2": true
+      }
+  }
+}</code></pre></td>
+</tr>
+</table>
+
 ## Assign
 
 Helper able to assign (to set) a variable to use later in the template.

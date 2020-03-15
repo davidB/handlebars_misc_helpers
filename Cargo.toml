@@ -27,6 +27,7 @@ serde-transcode = { version = "^1", optional = true }
 serde_yaml = { version = "^0.8", optional = true }
 toml = { version = "^0.5", optional = true }
 enquote = { version = "^1.0", optional = true }
+jsonnet-rs = {version = "^0.6", optional = true }
 
 [dev-dependencies]
 spectral = "0.6.0"
@@ -35,7 +36,8 @@ tempfile = "3.1.0"
 pretty_assertions = "0.6.1"
 
 [features]
-default = [ "string", "http", "json" ]
+default = [ "string", "http", "json", "jsonnet" ]
 string = [ "Inflector", "enquote" ]
 http = [ "attohttpc" ]
 json = [ "lazy_static", "serde", "serde_json", "serde-transcode", "serde_yaml", "toml" ]
+jsonnet = [ "jsonnet-rs" ]
