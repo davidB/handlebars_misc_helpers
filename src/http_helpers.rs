@@ -7,7 +7,9 @@ fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, attohttpc::Error> {
     attohttpc::get(url.as_ref()).send()?.text()
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
+pub fn register<'reg>(
+    handlebars: &mut Handlebars<'reg>,
+) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
     vec![{
             handlebars_helper!(http_get: |v: str| http_get_fct(&v).map_err(RenderError::with)?);
             handlebars.register_helper("http_get", Box::new(http_get))

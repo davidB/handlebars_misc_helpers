@@ -48,7 +48,9 @@ pub fn setup_handlebars(handlebars: &mut Handlebars) {
     register(handlebars);
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
+pub fn register<'reg>(
+    handlebars: &mut Handlebars<'reg>,
+) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
     vec![
         #[cfg(feature = "string")]
         string_helpers::register(handlebars),

@@ -39,7 +39,9 @@ fn assign_fct(
     Ok(())
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
+pub fn register<'reg>(
+    handlebars: &mut Handlebars<'reg>,
+) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
     vec![{ handlebars.register_helper("assign", Box::new(assign_fct)) }]
         .into_iter()
         .flatten()

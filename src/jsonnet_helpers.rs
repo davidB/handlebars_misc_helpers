@@ -49,7 +49,9 @@ fn jsonnet_block<'reg, 'rc>(
     out.write(&res).map_err(RenderError::with)
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
+pub fn register<'reg>(
+    handlebars: &mut Handlebars<'reg>,
+) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
     vec![{ handlebars.register_helper("jsonnet", Box::new(jsonnet_block)) }]
         .into_iter()
         .flatten()

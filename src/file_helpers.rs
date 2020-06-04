@@ -2,7 +2,9 @@ use handlebars::HelperDef;
 use handlebars::{handlebars_helper, Handlebars};
 use std::path::Path;
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
+pub fn register<'reg>(
+    handlebars: &mut Handlebars<'reg>,
+) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
     vec![{
         handlebars_helper!(read_to_str: |v: str| {
             let p = Path::new(v);

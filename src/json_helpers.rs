@@ -247,7 +247,9 @@ fn to_json_block<'reg, 'rc>(
 
 handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(RenderError::with)?);
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) -> Vec<Box<dyn HelperDef + 'reg>> {
+pub fn register<'reg>(
+    handlebars: &mut Handlebars<'reg>,
+) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
     vec![
         { handlebars.register_helper("json_to_str", Box::new(json_to_str_fct)) },
         { handlebars.register_helper("str_to_json", Box::new(str_to_json_fct)) },
