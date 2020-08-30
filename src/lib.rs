@@ -7,6 +7,7 @@
 //     unreachable_pub
 // )]
 
+use handlebars::no_escape;
 use handlebars::Handlebars;
 use handlebars::HelperDef;
 use snafu::Snafu;
@@ -45,6 +46,7 @@ pub fn new_hbs<'reg>() -> Handlebars<'reg> {
 
 pub fn setup_handlebars(handlebars: &mut Handlebars) {
     handlebars.set_strict_mode(true);
+    handlebars.register_escape_fn(no_escape); //html escaping is the default and cause issue
     register(handlebars);
 }
 

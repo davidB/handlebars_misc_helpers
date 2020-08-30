@@ -46,7 +46,8 @@ fn jsonnet_block<'reg, 'rc>(
         s
     };
 
-    out.write(&res).map_err(RenderError::with)
+    out.write(&res)
+        .map_err(|e| RenderError::from_error("jsonnet_block", e))
 }
 
 pub fn register<'reg>(

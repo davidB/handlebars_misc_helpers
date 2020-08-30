@@ -62,11 +62,12 @@ impl DataFormat {
         }
         match self {
             DataFormat::Json | DataFormat::JsonPretty => {
-                serde_json::from_str(&data).map_err(RenderError::with)
+                serde_json::from_str(&data).map_err(RenderError::from)
             }
-            DataFormat::Yaml => serde_yaml::from_str(&data).map_err(RenderError::with),
+            DataFormat::Yaml => serde_yaml::from_str(&data)
+                .map_err(|e| RenderError::from_error("serde_yaml::from_str", e)),
             DataFormat::Toml | DataFormat::TomlPretty => {
-                toml::from_str(&data).map_err(RenderError::with)
+                toml::from_str(&data).map_err(|e| RenderError::from_error("toml::from_str", e))
             }
         }
     }
@@ -76,15 +77,18 @@ impl DataFormat {
             Json::Null => Ok("".to_owned()),
             Json::String(c) if c.is_empty() => Ok("".to_owned()),
             _ => match self {
-                DataFormat::Json => serde_json::to_string(data).map_err(RenderError::with),
+                DataFormat::Json => serde_json::to_string(data).map_err(RenderError::from),
                 DataFormat::JsonPretty => {
-                    serde_json::to_string_pretty(data).map_err(RenderError::with)
+                    serde_json::to_string_pretty(data).map_err(RenderError::from)
                 }
                 DataFormat::Yaml => serde_yaml::to_string(data)
-                    .map_err(RenderError::with)
+                    .map_err(|e| RenderError::from_error("serde_yaml::to_string", e))
                     .map(|s| s.trim_start_matches("---\n").to_string()),
-                DataFormat::Toml => toml::to_string(data).map_err(RenderError::with),
-                DataFormat::TomlPretty => toml::to_string_pretty(data).map_err(RenderError::with),
+                DataFormat::Toml => {
+                    toml::to_string(data).map_err(|e| RenderError::from_error("toml::to_string", e))
+                }
+                DataFormat::TomlPretty => toml::to_string_pretty(data)
+                    .map_err(|e| RenderError::from_error("toml::to_string_pretty", e)),
             },
         }
     }
@@ -107,7 +111,7 @@ fn find_data_format<'reg: 'rc, 'rc>(h: &Helper<'reg, 'rc>) -> Result<DataFormat,
         .hash_get("format")
         .and_then(|v| v.value().as_str())
         .unwrap_or("json");
-    DataFormat::from_str(param).map_err(RenderError::with)
+    DataFormat::from_str(param).map_err(|e| RenderError::from_error("DataFormat::from_str", e))
 }
 
 fn find_str_param<'reg: 'rc, 'rc>(
@@ -177,7 +181,7 @@ impl HelperDef for json_str_query_fct {
         let data_str = find_str_param(1, h)?;
         let data = format.read_string(&data_str)?;
         let result = json_query(expr, data)
-            .map_err(RenderError::with)
+            .map_err(|e| RenderError::from_error("json_query", e))
             .and_then(|v| format.write_string(&v))?;
         Ok(Some(ScopedJson::Derived(Json::String(result))))
     }
@@ -207,7 +211,7 @@ fn from_json_block<'reg, 'rc>(
             let mut deserializer = serde_json::Deserializer::from_str(&input);
             let mut serializer = toml::ser::Serializer::new(&mut res);
             serde_transcode::transcode(&mut deserializer, &mut serializer)
-                .map_err(RenderError::with)?;
+                .map_err(|e| RenderError::from_error("serde_transcode", e))?;
             res
         }
         DataFormat::TomlPretty => {
@@ -216,7 +220,7 @@ fn from_json_block<'reg, 'rc>(
             let mut deserializer = serde_json::Deserializer::from_str(&input);
             let mut serializer = toml::ser::Serializer::pretty(&mut res);
             serde_transcode::transcode(&mut deserializer, &mut serializer)
-                .map_err(RenderError::with)?;
+                .map_err(|e| RenderError::from_error("serde_transcode", e))?;
             res
         }
         _ => {
@@ -225,7 +229,8 @@ fn from_json_block<'reg, 'rc>(
         }
     };
 
-    out.write(&res).map_err(RenderError::with)
+    out.write(&res)
+        .map_err(|e| RenderError::from_error("from_json_block", e))
 }
 
 fn to_json_block<'reg, 'rc>(
@@ -242,10 +247,10 @@ fn to_json_block<'reg, 'rc>(
         .unwrap_or(Ok(()))?;
     let data = format.read_string(&content.into_string()?)?;
     let res = DataFormat::JsonPretty.write_string(&data)?;
-    out.write(&res).map_err(RenderError::with)
+    out.write(&res).map_err(RenderError::from)
 }
 
-handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(RenderError::with)?);
+handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(|e| RenderError::from_error("json_query", e))?);
 
 pub fn register<'reg>(
     handlebars: &mut Handlebars<'reg>,

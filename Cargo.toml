@@ -14,7 +14,7 @@ homepage = "https://github.com/davidB/handlebars_misc_helpers"
 exclude = ["/.github", "/.dependabot", "/docs/**", "/scripts", ".gitignore", "/tests/**"]
 
 [dependencies]
-handlebars = "^3.1"
+handlebars = "^3.4"
 snafu = "^0.6"
 log = "^0.4"
 attohttpc = { version = "^0.15", optional = true }
