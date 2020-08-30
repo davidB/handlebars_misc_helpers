@@ -31,9 +31,9 @@ jsonnet-rs = {version = "^0.6", optional = true }
 
 [dev-dependencies]
 spectral = "0.6.0"
-indoc = "1.0"
 tempfile = "3.1.0"
 pretty_assertions = "0.6.1"
+unindent = "0.1.6"
 
 [features]
 default = [ "string", "http", "json", "jsonnet" ]

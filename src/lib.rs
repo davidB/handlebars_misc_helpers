@@ -76,6 +76,7 @@ mod tests {
     use spectral::prelude::*;
     use std::collections::HashMap;
     use std::error::Error;
+    use unindent::unindent;
 
     pub(crate) fn assert_helpers(
         input: &str,
@@ -94,7 +95,7 @@ mod tests {
     }
 
     pub(crate) fn normalize_nl(s: &str) -> String {
-        s.replace("\r\n", "\n").replace("\r", "")
+        unindent(s).replace("\r\n", "\n").replace("\r", "")
     }
 
     #[macro_export]

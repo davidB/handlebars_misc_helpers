@@ -63,7 +63,6 @@ mod tests {
     //use super::*;
     use crate::assert_renders;
     use crate::tests::normalize_nl;
-    use indoc::indoc;
     use std::error::Error;
 
     #[test]
@@ -72,7 +71,7 @@ mod tests {
             (r##"{{#jsonnet}}{{/jsonnet}}"##, r##""##),
             (
                 r##"{{#jsonnet}}{"foo":{"bar":{"baz":true}}}{{/jsonnet}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                        "foo": {
                           "bar": {
@@ -81,14 +80,14 @@ mod tests {
                        }
                     }
                     "##
-                ))
+                )
             ),
             (
                 r##"{{#jsonnet}}
                 local v = {"foo":{"bar":{"baz":false}}};
                 v
                 {{/jsonnet}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                        "foo": {
                           "bar": {
@@ -97,7 +96,7 @@ mod tests {
                        }
                     }
                     "##
-                ))
+                )
             ),
             (
                 r##"{{#jsonnet}}
@@ -109,7 +108,7 @@ mod tests {
                   }
                 }
                 {{/jsonnet}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                        "foo": {
                           "bar": {
@@ -122,7 +121,7 @@ mod tests {
                        }
                     }
                     "##
-                ))
+                )
             ),
             (
                 r##"{{#jsonnet}}
@@ -135,7 +134,7 @@ mod tests {
                   }
                 }
                 {{/jsonnet}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                        "foo": {
                           "bar": {
@@ -144,7 +143,7 @@ mod tests {
                        }
                     }
                     "##
-                ))
+                )
             ),
             (
                 r##"{{#jsonnet}}
@@ -157,7 +156,7 @@ mod tests {
                   }
                 }
                 {{/jsonnet}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                        "foo": {
                           "bar": {
@@ -167,7 +166,7 @@ mod tests {
                        }
                     }
                     "##
-                ))
+                )
             ),
         ]
     }

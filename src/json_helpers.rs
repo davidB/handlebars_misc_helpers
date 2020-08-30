@@ -268,7 +268,6 @@ mod tests {
     use super::*;
     use crate::assert_renders;
     use crate::tests::normalize_nl;
-    use indoc::indoc;
     use spectral::prelude::*;
     use std::error::Error;
 
@@ -335,42 +334,44 @@ mod tests {
         assert_data_format_write_eq_read(DataFormat::Json, r##"{"foo":{"bar":{"baz":true}}}"##)?;
         assert_data_format_write_eq_read(
             DataFormat::JsonPretty,
-            &normalize_nl(indoc!(
+            &normalize_nl(
                 r##"{
                   "foo": {
                     "bar": {
                       "baz": true
                     }
                   }
-                }"##
-            )),
+                }"##,
+            ),
         )?;
         assert_data_format_write_eq_read(
             DataFormat::Yaml,
-            &normalize_nl(indoc!(
+            &normalize_nl(
                 r##"
-                foo:
-                  bar:
-                    baz: true"##
-            )),
+                    a: a
+                    foo:
+                      bar:
+                        baz: true
+                "##,
+            ),
         )?;
         assert_data_format_write_eq_read(
             DataFormat::Toml,
-            &normalize_nl(indoc!(
+            &normalize_nl(
                 r##"
                 [foo.bar]
                 baz = true
-                "##
-            )),
+                "##,
+            ),
         )?;
         assert_data_format_write_eq_read(
             DataFormat::TomlPretty,
-            &normalize_nl(indoc!(
+            &normalize_nl(
                 r##"
                 [foo.bar]
                 baz = true
-                "##
-            )),
+                "##,
+            ),
         )?;
         Ok(())
     }
@@ -389,7 +390,7 @@ mod tests {
             ),
             (
                 r##"{{ json_to_str ( str_to_json "{\"foo\":{\"bar\":{\"baz\":true}}}" ) format="json_pretty"}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                   "foo": {
                     "bar": {
@@ -397,7 +398,7 @@ mod tests {
                     }
                   }
                 }"##
-                )),
+                ),
             )
         ]
     }
@@ -440,19 +441,19 @@ mod tests {
         assert_renders![
             (
                 r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" format="yaml"}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     "
                 bar:
                   baz: true"
-                ))
+                )
             ),
             (
                 r##"{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     "
                 bar:
                   baz: true"
-                ))
+                )
             ),
             (
                 r##"{{ json_str_query "foo.bar.baz" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
@@ -466,11 +467,11 @@ mod tests {
         assert_renders![
             (
                 r##"{{ json_str_query "foo" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     "[bar]
                     baz = true
                     "
-                )),
+                ),
             ),
             (
                 r##"{{ json_str_query "foo.bar.baz" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
@@ -485,7 +486,7 @@ mod tests {
             (r##"{{#to_json}}{{/to_json}}"##, r##""##),
             (
                 r##"{{#to_json}}{"foo":{"bar":{"baz":true}}}{{/to_json}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                       "foo": {
                         "bar": {
@@ -493,17 +494,17 @@ mod tests {
                         }
                       }
                     }"##
-                )),
+                ),
             ),
             (
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{{#to_json format="yaml"}}
                     foo:
                         bar:
                             baz: true
                     {{/to_json}}"##
-                )),
-                &normalize_nl(indoc!(
+                ),
+                &normalize_nl(
                     r##"{
                       "foo": {
                         "bar": {
@@ -511,17 +512,17 @@ mod tests {
                         }
                       }
                     }"##
-                )),
+                ),
             ),
             (
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{{#to_json format="toml"}}
                     [foo]
                     bar = { baz = true }
                     hello = "1.2.3"
                     {{/to_json}}"##
-                )),
-                &normalize_nl(indoc!(
+                ),
+                &normalize_nl(
                     r##"{
                       "foo": {
                         "bar": {
@@ -530,7 +531,7 @@ mod tests {
                         "hello": "1.2.3"
                       }
                     }"##
-                )),
+                ),
             ),
         ]
     }
@@ -554,7 +555,7 @@ mod tests {
             ),
             (
                 r##"{{#from_json format="json_pretty"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"{
                       "foo": {
                         "bar": {
@@ -562,29 +563,29 @@ mod tests {
                         }
                       }
                     }"##
-                )),
+                ),
             ),
             (
                 r##"{{#from_json format="yaml"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"
                     foo:
                       bar:
                         baz: true"##
-                ))
+                )
             ),
             (
                 r##"{{#from_json format="toml"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"
                     [foo.bar]
                     baz = true
                     "##
-                )),
+                ),
             ),
             (
                 r##"{{#from_json format="toml"}}{"foo":{"hello":"1.2.3", "bar":{"baz":true} }}{{/from_json}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"
                     [foo]
                     hello = "1.2.3"
@@ -592,11 +593,11 @@ mod tests {
                     [foo.bar]
                     baz = true
                     "##
-                )),
+                ),
             ),
             (
                 r##"{{#from_json format="toml_pretty"}}{"foo":{"hello":"1.2.4", "bar":{"baz":true} }}{{/from_json}}"##,
-                &normalize_nl(indoc!(
+                &normalize_nl(
                     r##"
                     [foo]
                     hello = '1.2.4'
@@ -604,7 +605,7 @@ mod tests {
                     [foo.bar]
                     baz = true
                     "##
-                )),
+                ),
             ),
         ]
     }
