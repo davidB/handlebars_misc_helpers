@@ -15,7 +15,7 @@ use thiserror::Error;
 pub mod assign_helpers;
 pub mod env_helpers;
 pub mod file_helpers;
-#[cfg(feature = "http")]
+#[cfg(feature = "http_fct")]
 pub mod http_helpers;
 #[cfg(feature = "json")]
 mod jmespath;
@@ -56,7 +56,7 @@ pub fn register<'reg>(
     vec![
         #[cfg(feature = "string")]
         string_helpers::register(handlebars),
-        #[cfg(feature = "http")]
+        #[cfg(feature = "http_fct")]
         http_helpers::register(handlebars),
         path_helpers::register(handlebars),
         env_helpers::register(handlebars),

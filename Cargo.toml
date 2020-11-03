@@ -20,6 +20,7 @@ attohttpc = { version = "^0.15", optional = true }
 Inflector = { version = "^0.11", optional = true }
 # jmespath = { version = "^0.2", optional = true }
 lazy_static = {version="^1.4", optional = true }
+reqwest = { version = "0.10", optional = true, features = ["blocking"] }
 serde = { version = "^1", features = ["rc"], optional = true }
 serde_json = { version = "^1", optional = true }
 serde-transcode = { version = "^1", optional = true }
@@ -36,8 +37,10 @@ pretty_assertions = "0.6.1"
 unindent = "0.1.6"
 
 [features]
-default = [ "string", "http", "json", "jsonnet" ]
+default = [ "string", "http_attohttpc", "json", "jsonnet" ]
 string = [ "Inflector", "enquote" ]
-http = [ "attohttpc" ]
+http_attohttpc = [ "attohttpc", "http_fct" ]
+http_reqwest = [ "reqwest" , "http_fct" ]
+http_fct = []
 json = [ "lazy_static", "serde", "serde_json", "serde-transcode", "serde_yaml", "toml" ]
 jsonnet = [ "jsonnet-rs" ]
