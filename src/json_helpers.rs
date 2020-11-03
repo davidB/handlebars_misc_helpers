@@ -9,23 +9,24 @@ use serde::Serialize;
 use serde_json;
 use serde_json::Value as Json;
 use serde_yaml;
-use snafu::{ResultExt, Snafu};
 use std::str::FromStr;
+use thiserror::Error;
 use toml;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 enum JsonError {
+    #[error("query failure for expression '{expression}'")]
     JsonQueryFailure {
         expression: String,
         source: jmespath::JmespathError,
     },
+    #[error("fail to convert '{input}'")]
     ToJsonValueError {
         input: String,
         source: serde_json::error::Error,
     },
-    DataFormatUnknown {
-        format: String,
-    },
+    #[error("data format unknown '{format}'")]
+    DataFormatUnknown { format: String },
 }
 
 #[derive(Debug, Clone)]
@@ -98,11 +99,13 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
     let data = data.to_jmespath();
     let res = jmespath::compile(expr.as_ref())
         .and_then(|e| e.search(data))
-        .context(JsonQueryFailure {
+        .map_err(|source| JsonError::JsonQueryFailure {
             expression: expr.as_ref().to_string(),
+            source,
         })?;
-    serde_json::to_value(res.as_ref()).context(ToJsonValueError {
+    serde_json::to_value(res.as_ref()).map_err(|source| JsonError::ToJsonValueError {
         input: format!("{:?}", res),
+        source,
     })
 }
 

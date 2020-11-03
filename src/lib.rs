@@ -10,7 +10,7 @@
 use handlebars::no_escape;
 use handlebars::Handlebars;
 use handlebars::HelperDef;
-use snafu::Snafu;
+use thiserror::Error;
 
 pub mod assign_helpers;
 pub mod env_helpers;
@@ -28,9 +28,9 @@ pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 enum HelperError {
-    #[snafu(display("missing param {} '{}' of '{}'", position, name, helper_signature))]
+    #[error("missing param {position} '{name}' of '{helper_signature}'")]
     MissingParameter {
         position: usize,
         name: String,

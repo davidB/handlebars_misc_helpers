@@ -4,12 +4,6 @@ use handlebars::{
     Renderable,
 };
 use jsonnet::JsonnetVm;
-//use snafu::{ResultExt, Snafu};
-
-// #[derive(Debug, Snafu)]
-// enum JsonnetError<'a> {
-//     JsonnetFailure { source: jsonnet::Error<'a> },
-// }
 
 fn jsonnet_block<'reg, 'rc>(
     h: &Helper<'reg, 'rc>,
