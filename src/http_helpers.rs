@@ -1,17 +1,17 @@
-#[cfg(feature = "attohttpc")]
+#[cfg(feature = "http_attohttpc")]
 use attohttpc;
 use handlebars::HelperDef;
 use handlebars::RenderError;
 use handlebars::{handlebars_helper, Handlebars};
-#[cfg(feature = "reqwest")]
+#[cfg(all(feature = "http_reqwest", not(feature = "http_attohttpc")))]
 use reqwest;
 
-#[cfg(feature = "attohttpc")]
+#[cfg(feature = "http_attohttpc")]
 fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, attohttpc::Error> {
     attohttpc::get(url.as_ref()).send()?.text()
 }
 
-#[cfg(feature = "reqwest")]
+#[cfg(all(feature = "http_reqwest", not(feature = "http_attohttpc")))]
 fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, reqwest::Error> {
     reqwest::blocking::get(url.as_ref())?.text()
 }
