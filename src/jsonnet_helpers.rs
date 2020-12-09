@@ -4,6 +4,13 @@ use handlebars::{
     Renderable,
 };
 use jsonnet::JsonnetVm;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+enum JsonnetError {
+    #[error("jsonnet evaluation failed: {source_str}")]
+    EvaluateError { source_str: String },
+}
 
 fn jsonnet_block<'reg, 'rc>(
     h: &Helper<'reg, 'rc>,
@@ -33,9 +40,14 @@ fn jsonnet_block<'reg, 'rc>(
         // );
         let s = vm
             .evaluate_snippet("snippet", &input)
-            // .context(JsonnetFailure {})
-            .unwrap()
-            //.map_err(RenderError::with)?
+            .map_err(|e| {
+                RenderError::from_error(
+                    "jsonnet_block",
+                    JsonnetError::EvaluateError {
+                        source_str: format!("{:?}", e),
+                    },
+                )
+            })?
             .to_string();
         s
     };
