@@ -12,6 +12,7 @@ use serde_yaml;
 use std::str::FromStr;
 use thiserror::Error;
 use toml;
+use toml::value::Map;
 
 #[derive(Debug, Error)]
 enum JsonError {
@@ -55,6 +56,86 @@ impl FromStr for DataFormat {
     }
 }
 
+fn to_opt_res<T, E>(v: Result<Option<T>, E>) -> Option<Result<T, E>> {
+    match v {
+        Err(e) => Some(Err(e)),
+        Ok(v) => v.map(Ok),
+    }
+}
+
+// HACK for toml because
+// see:
+// - [ValueAfterTable error · Issue #336 · alexcrichton/toml-rs](https://github.com/alexcrichton/toml-rs/issues/336)
+// - [ValueAfterTable fix by PSeitz · Pull Request #339 · alexcrichton/toml-rs](https://github.com/alexcrichton/toml-rs/pull/339)
+// previous workaround was to use serde_transcode like [PSeitz/toml-to-json-online-converter: toml to json and json to toml online converter - written in rust with wasm](https://github.com/PSeitz/toml-to-json-online-converter)
+// but it failed in some case (added into the test section)
+// DataFormat::Toml => {
+//     let mut res = String::new();
+//     let input = content.into_string()?;
+//     let mut deserializer = serde_json::Deserializer::from_str(&input);
+//     let mut serializer = toml::ser::Serializer::new(&mut res);
+//     serde_transcode::transcode(&mut deserializer, &mut serializer)
+//         .map_err(|e| RenderError::from_error("serde_transcode", e))?;
+//     res
+// }
+// DataFormat::TomlPretty => {
+//     let mut res = String::new();
+//     let input = content.into_string()?;
+//     let mut deserializer = serde_json::Deserializer::from_str(&input);
+//     let mut serializer = toml::ser::Serializer::pretty(&mut res);
+//     serde_transcode::transcode(&mut deserializer, &mut serializer)
+//         .map_err(|e| RenderError::from_error("serde_transcode", e))?;
+//     res
+// }
+//
+// For toml we recreate a tom struct with map that preserve order (indexedmap)
+fn to_ordored_toml_value(data: &Json) -> Result<Option<toml::Value>, RenderError> {
+    match data {
+        Json::String(v) => Ok(Some(toml::Value::from(v.as_str()))),
+        Json::Array(v) => v
+            .iter()
+            .filter_map(|i| to_opt_res(to_ordored_toml_value(i)))
+            .collect::<Result<Vec<_>, _>>()
+            .map(|a| Some(toml::Value::Array(a))),
+        Json::Object(ref obj) => obj
+            .iter()
+            .filter_map(|kv| {
+                to_opt_res(to_ordored_toml_value(kv.1))
+                    .map(|rnv| rnv.map(|nv| (kv.0.to_owned(), nv)))
+            })
+            .collect::<Result<Map<String, toml::Value>, _>>()
+            .map(|m| Some(toml::Value::Table(sort_toml_map(m)))),
+        Json::Number(v) => {
+            if v.is_i64() {
+                Ok(Some(toml::Value::Integer(v.as_i64().unwrap())))
+            } else if let Some(x) = v.as_f64() {
+                Ok(Some(toml::Value::Float(x)))
+            } else {
+                Err(RenderError::new(format!(
+                    "to_toml:can not convert a Json Number: {}",
+                    v
+                )))
+            }
+        }
+        Json::Bool(v) => Ok(Some(toml::Value::Boolean(*v))),
+        Json::Null => Ok(None),
+    }
+}
+
+fn sort_toml_map(data: Map<String, toml::Value>) -> Map<String, toml::Value> {
+    dbg!(&data);
+    let (tables, non_tables): (Vec<(String, toml::Value)>, Vec<(String, toml::Value)>) =
+        data.into_iter().partition(|v| v.1.is_table());
+    let (arrays, others): (Vec<(String, toml::Value)>, Vec<(String, toml::Value)>) =
+        non_tables.into_iter().partition(|v| v.1.is_array());
+    let mut m = Map::new();
+    m.extend(others);
+    m.extend(arrays);
+    m.extend(tables);
+    dbg!(&m);
+    m
+}
+
 impl DataFormat {
     fn read_string(&self, data: &str) -> Result<Json, RenderError> {
         if data.is_empty() {
@@ -74,6 +155,7 @@ impl DataFormat {
     }
 
     fn write_string(&self, data: &Json) -> Result<String, RenderError> {
+        dbg!("write_string {}", &self);
         match data {
             Json::Null => Ok("".to_owned()),
             Json::String(c) if c.is_empty() => Ok("".to_owned()),
@@ -86,10 +168,15 @@ impl DataFormat {
                     .map_err(|e| RenderError::from_error("serde_yaml::to_string", e))
                     .map(|s| s.trim_start_matches("---\n").to_string()),
                 DataFormat::Toml => {
-                    toml::to_string(data).map_err(|e| RenderError::from_error("toml::to_string", e))
+                    let data_toml = to_ordored_toml_value(data)?;
+                    toml::to_string(&data_toml)
+                        .map_err(|e| RenderError::from_error("toml::to_string", e))
                 }
-                DataFormat::TomlPretty => toml::to_string_pretty(data)
-                    .map_err(|e| RenderError::from_error("toml::to_string_pretty", e)),
+                DataFormat::TomlPretty => {
+                    let data_toml = to_ordored_toml_value(data)?;
+                    toml::to_string_pretty(&data_toml)
+                        .map_err(|e| RenderError::from_error("toml::to_string_pretty", e))
+                }
             },
         }
     }
@@ -202,35 +289,8 @@ fn from_json_block<'reg, 'rc>(
     h.template()
         .map(|t| t.render(r, ctx, rc, &mut content))
         .unwrap_or(Ok(()))?;
-    let res = match format {
-        // HACK for toml because
-        // see:
-        // - [ValueAfterTable error · Issue #336 · alexcrichton/toml-rs](https://github.com/alexcrichton/toml-rs/issues/336)
-        // - [ValueAfterTable fix by PSeitz · Pull Request #339 · alexcrichton/toml-rs](https://github.com/alexcrichton/toml-rs/pull/339)
-        // workaround is to use serde_transcode like [PSeitz/toml-to-json-online-converter: toml to json and json to toml online converter - written in rust with wasm](https://github.com/PSeitz/toml-to-json-online-converter)
-        DataFormat::Toml => {
-            let mut res = String::new();
-            let input = content.into_string()?;
-            let mut deserializer = serde_json::Deserializer::from_str(&input);
-            let mut serializer = toml::ser::Serializer::new(&mut res);
-            serde_transcode::transcode(&mut deserializer, &mut serializer)
-                .map_err(|e| RenderError::from_error("serde_transcode", e))?;
-            res
-        }
-        DataFormat::TomlPretty => {
-            let mut res = String::new();
-            let input = content.into_string()?;
-            let mut deserializer = serde_json::Deserializer::from_str(&input);
-            let mut serializer = toml::ser::Serializer::pretty(&mut res);
-            serde_transcode::transcode(&mut deserializer, &mut serializer)
-                .map_err(|e| RenderError::from_error("serde_transcode", e))?;
-            res
-        }
-        _ => {
-            let data = DataFormat::Json.read_string(&content.into_string()?)?;
-            format.write_string(&data)?
-        }
-    };
+    let data = DataFormat::Json.read_string(&content.into_string()?)?;
+    let res = format.write_string(&data)?;
 
     out.write(&res)
         .map_err(|e| RenderError::from_error("from_json_block", e))
@@ -616,5 +676,62 @@ mod tests {
                 ),
             ),
         ]
+    }
+
+    #[test]
+    fn test_block_from_json_to_toml_with_tables_at_anyplace() -> Result<(), Box<dyn Error>> {
+        assert_renders![(
+            r##"{{#from_json format="toml"}}
+                {"foo":{
+                    "f0": null,
+                    "f1":"1.2.3",
+                    "f2":{
+                        "f20": true,
+                        "f21": { "f210": false}
+                    },
+                    "f3": [1,2,3],
+                    "f4":"1.2.3",
+                    "f5":{
+                        "f50": true,
+                        "f51": { "f510": false}
+                    }
+                }}
+                {{/from_json}}"##,
+            &normalize_nl(
+                r##"
+                    [foo]
+                    f1 = "1.2.3"
+                    f4 = "1.2.3"
+                    f3 = [1, 2, 3]
+                    
+                    [foo.f2]
+                    f20 = true
+                    
+                    [foo.f2.f21]
+                    f210 = false
+                    
+                    [foo.f5]
+                    f50 = true
+                    
+                    [foo.f5.f51]
+                    f510 = false
+                    "##
+            ),
+        ),]
+    }
+
+    #[test]
+    fn test_sort_toml_map() {
+        let mut actual = toml::map::Map::new();
+        actual.insert("f1".to_string(), toml::Value::String("s1".to_owned()));
+        actual.insert("f2".to_string(), toml::Value::Table(toml::map::Map::new()));
+        actual.insert("f3".to_string(), toml::Value::Boolean(true));
+        actual.insert("f4".to_string(), toml::Value::Table(toml::map::Map::new()));
+        let mut expected = toml::map::Map::new();
+        expected.insert("f1".to_string(), toml::Value::String("s1".to_owned()));
+        expected.insert("f3".to_string(), toml::Value::Boolean(true));
+        expected.insert("f2".to_string(), toml::Value::Table(toml::map::Map::new()));
+        expected.insert("f4".to_string(), toml::Value::Table(toml::map::Map::new()));
+        assert_eq!(sort_toml_map(actual), expected)
     }
 }
