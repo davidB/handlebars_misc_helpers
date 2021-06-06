@@ -2,7 +2,6 @@ use crate::HelperError::MissingParameter;
 use handlebars::Context;
 use handlebars::Handlebars;
 use handlebars::Helper;
-use handlebars::HelperDef;
 use handlebars::HelperResult;
 use handlebars::Output;
 use handlebars::RenderContext;
@@ -45,13 +44,8 @@ fn assign_fct(
     Ok(())
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![{ handlebars.register_helper("assign", Box::new(assign_fct)) }]
-        .into_iter()
-        .flatten()
-        .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    handlebars.register_helper("assign", Box::new(assign_fct))
 }
 
 #[cfg(test)]

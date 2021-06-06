@@ -9,7 +9,6 @@
 
 use handlebars::no_escape;
 use handlebars::Handlebars;
-use handlebars::HelperDef;
 use thiserror::Error;
 
 pub mod assign_helpers;
@@ -50,26 +49,19 @@ pub fn setup_handlebars(handlebars: &mut Handlebars) {
     register(handlebars);
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![
-        #[cfg(feature = "string")]
-        string_helpers::register(handlebars),
-        #[cfg(feature = "http_fct")]
-        http_helpers::register(handlebars),
-        path_helpers::register(handlebars),
-        env_helpers::register(handlebars),
-        #[cfg(feature = "json")]
-        json_helpers::register(handlebars),
-        #[cfg(feature = "jsonnet")]
-        jsonnet_helpers::register(handlebars),
-        assign_helpers::register(handlebars),
-        file_helpers::register(handlebars),
-    ]
-    .into_iter()
-    .flatten()
-    .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    #[cfg(feature = "string")]
+    string_helpers::register(handlebars);
+    #[cfg(feature = "http_fct")]
+    http_helpers::register(handlebars);
+    path_helpers::register(handlebars);
+    env_helpers::register(handlebars);
+    #[cfg(feature = "json")]
+    json_helpers::register(handlebars);
+    #[cfg(feature = "jsonnet")]
+    jsonnet_helpers::register(handlebars);
+    assign_helpers::register(handlebars);
+    file_helpers::register(handlebars);
 }
 
 #[cfg(test)]

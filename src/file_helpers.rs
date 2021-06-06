@@ -1,28 +1,20 @@
-use handlebars::HelperDef;
 use handlebars::{handlebars_helper, Handlebars};
 use std::path::Path;
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![{
-        handlebars_helper!(read_to_str: |v: str| {
-            let p = Path::new(v);
-            if p.exists() {
-                std::fs::read_to_string(p)?
-            } else {
-                log::warn!(
-                    "helper: read_to_str failed for non existing path path '{:?}'",
-                    v
-                );
-                "".to_owned()
-            }
-        });
-        handlebars.register_helper("read_to_str", Box::new(read_to_str))
-    }]
-    .into_iter()
-    .flatten()
-    .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    handlebars_helper!(read_to_str: |v: str| {
+        let p = Path::new(v);
+        if p.exists() {
+            std::fs::read_to_string(p)?
+        } else {
+            log::warn!(
+                "helper: read_to_str failed for non existing path path '{:?}'",
+                v
+            );
+            "".to_owned()
+        }
+    });
+    handlebars.register_helper("read_to_str", Box::new(read_to_str))
 }
 
 #[cfg(test)]

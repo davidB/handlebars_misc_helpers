@@ -1,6 +1,5 @@
 #[cfg(feature = "http_attohttpc")]
 use attohttpc;
-use handlebars::HelperDef;
 use handlebars::RenderError;
 use handlebars::{handlebars_helper, Handlebars};
 #[cfg(all(feature = "http_reqwest", not(feature = "http_attohttpc")))]
@@ -16,19 +15,15 @@ fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, reqwest::Error> {
     reqwest::blocking::get(url.as_ref())?.text()
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![{
-            handlebars_helper!(http_get: |v: str| http_get_fct(&v).map_err(|e| RenderError::from_error("http_get", e))?);
-            handlebars.register_helper("http_get", Box::new(http_get))
-        },{
-            handlebars_helper!(gitignore_io: |v: str| http_get_fct(format!("https://www.gitignore.io/api/{}", v)).map_err(|e|RenderError::from_error("http_get", e))?);
-            handlebars.register_helper("gitignore_io", Box::new(gitignore_io))
-        }]
-        .into_iter()
-        .flatten()
-        .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    {
+        handlebars_helper!(http_get: |v: str| http_get_fct(&v).map_err(|e| RenderError::from_error("http_get", e))?);
+        handlebars.register_helper("http_get", Box::new(http_get))
+    }
+    {
+        handlebars_helper!(gitignore_io: |v: str| http_get_fct(format!("https://www.gitignore.io/api/{}", v)).map_err(|e|RenderError::from_error("http_get", e))?);
+        handlebars.register_helper("gitignore_io", Box::new(gitignore_io))
+    }
 }
 
 // #[cfg(test)]

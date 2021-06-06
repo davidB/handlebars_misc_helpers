@@ -23,8 +23,8 @@ impl HelperDef for first_non_empty_fct {
         h: &Helper<'reg, 'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
-        _: &mut RenderContext,
-    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        _: &mut RenderContext<'reg, 'rc>,
+    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
         let params = h.params();
         Ok(params
             .iter()
@@ -35,72 +35,66 @@ impl HelperDef for first_non_empty_fct {
             //         .filter(|s| !s.is_empty())
             // })
             .nth(0)
-            .map(|v| ScopedJson::Derived(serde_json::Value::String(v.to_owned()))))
+            .map(|v| ScopedJson::Derived(serde_json::Value::String(v.to_owned())))
+            .unwrap_or_else(|| ScopedJson::Derived(serde_json::Value::String("".to_owned()))))
     }
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![
-        {
-            handlebars_helper!(to_lower_case: |v: str| v.to_lowercase());
-            handlebars.register_helper("to_lower_case", Box::new(to_lower_case))
-        },
-        {
-            handlebars_helper!(to_upper_case: |v: str| v.to_uppercase());
-            handlebars.register_helper("to_upper_case", Box::new(to_upper_case))
-        },
-        {
-            handlebars_helper!(trim: |v: str| v.trim());
-            handlebars.register_helper("trim", Box::new(trim))
-        },
-        {
-            handlebars_helper!(trim_start: |v: str| v.trim_start());
-            handlebars.register_helper("trim_start", Box::new(trim_start))
-        },
-        {
-            handlebars_helper!(trim_end: |v: str| v.trim_end());
-            handlebars.register_helper("trim_end", Box::new(trim_end))
-        },
-        {
-            handlebars_helper!(replace: |v: str, from: str, to: str| v.replace(from, to));
-            handlebars.register_helper("replace", Box::new(replace))
-        },
-        handlebars_register_inflector!(handlebars, to_camel_case),
-        handlebars_register_inflector!(handlebars, to_pascal_case),
-        handlebars_register_inflector!(handlebars, to_snake_case),
-        handlebars_register_inflector!(handlebars, to_screaming_snake_case),
-        handlebars_register_inflector!(handlebars, to_kebab_case),
-        handlebars_register_inflector!(handlebars, to_train_case),
-        handlebars_register_inflector!(handlebars, to_sentence_case),
-        handlebars_register_inflector!(handlebars, to_title_case),
-        handlebars_register_inflector!(handlebars, to_class_case),
-        handlebars_register_inflector!(handlebars, to_table_case),
-        handlebars_register_inflector!(handlebars, to_plural),
-        handlebars_register_inflector!(handlebars, to_singular),
-        {
-            handlebars_helper!(quote: |quote_symbol: str, v: str| enquote::enquote(quote_symbol.chars().next().unwrap_or('"'), &v));
-            handlebars.register_helper("quote", Box::new(quote))
-        },
-        {
-            handlebars_helper!(unquote: |v: str| match enquote::unquote(&v){
-                Err(e) => {
-                    log::warn!(
-                        "helper: unquote failed for string '{:?}' with error '{:?}'",
-                        v, e
-                    );
-                    v.to_owned()
-                }
-                Ok(s) => s,
-            });
-            handlebars.register_helper("unquote", Box::new(unquote))
-        },
-        handlebars.register_helper("first_non_empty", Box::new(first_non_empty_fct)),
-    ]
-    .into_iter()
-    .flatten()
-    .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    {
+        handlebars_helper!(to_lower_case: |v: str| v.to_lowercase());
+        handlebars.register_helper("to_lower_case", Box::new(to_lower_case))
+    }
+    {
+        handlebars_helper!(to_upper_case: |v: str| v.to_uppercase());
+        handlebars.register_helper("to_upper_case", Box::new(to_upper_case))
+    }
+    {
+        handlebars_helper!(trim: |v: str| v.trim());
+        handlebars.register_helper("trim", Box::new(trim))
+    }
+    {
+        handlebars_helper!(trim_start: |v: str| v.trim_start());
+        handlebars.register_helper("trim_start", Box::new(trim_start))
+    }
+    {
+        handlebars_helper!(trim_end: |v: str| v.trim_end());
+        handlebars.register_helper("trim_end", Box::new(trim_end))
+    }
+    {
+        handlebars_helper!(replace: |v: str, from: str, to: str| v.replace(from, to));
+        handlebars.register_helper("replace", Box::new(replace))
+    }
+    handlebars_register_inflector!(handlebars, to_camel_case);
+    handlebars_register_inflector!(handlebars, to_pascal_case);
+    handlebars_register_inflector!(handlebars, to_snake_case);
+    handlebars_register_inflector!(handlebars, to_screaming_snake_case);
+    handlebars_register_inflector!(handlebars, to_kebab_case);
+    handlebars_register_inflector!(handlebars, to_train_case);
+    handlebars_register_inflector!(handlebars, to_sentence_case);
+    handlebars_register_inflector!(handlebars, to_title_case);
+    handlebars_register_inflector!(handlebars, to_class_case);
+    handlebars_register_inflector!(handlebars, to_table_case);
+    handlebars_register_inflector!(handlebars, to_plural);
+    handlebars_register_inflector!(handlebars, to_singular);
+    {
+        handlebars_helper!(quote: |quote_symbol: str, v: str| enquote::enquote(quote_symbol.chars().next().unwrap_or('"'), &v));
+        handlebars.register_helper("quote", Box::new(quote))
+    }
+    {
+        handlebars_helper!(unquote: |v: str| match enquote::unquote(&v){
+            Err(e) => {
+                log::warn!(
+                    "helper: unquote failed for string '{:?}' with error '{:?}'",
+                    v, e
+                );
+                v.to_owned()
+            }
+            Ok(s) => s,
+        });
+        handlebars.register_helper("unquote", Box::new(unquote))
+    }
+    handlebars.register_helper("first_non_empty", Box::new(first_non_empty_fct));
 }
 
 #[cfg(test)]
