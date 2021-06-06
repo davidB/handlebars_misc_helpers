@@ -272,7 +272,15 @@ impl HelperDef for json_str_query_fct {
         let data = format.read_string(&data_str)?;
         let result = json_query(expr, data)
             .map_err(|e| RenderError::from_error("json_query", e))
-            .and_then(|v| format.write_string(&v))?;
+            .and_then(|v| {
+                format.write_string(&v).map(|s| {
+                    if v.is_array() || v.is_object() {
+                        s
+                    } else {
+                        s.trim().to_owned()
+                    }
+                })
+            })?;
         Ok(ScopedJson::Derived(Json::String(result)))
     }
 }
