@@ -12,7 +12,7 @@ fn expand(s: &str) -> PathBuf {
     }
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     {
         handlebars_helper!(parent: |v: str| {
             expand(&v).parent().and_then(|s| s.to_str()).unwrap_or("").to_owned()

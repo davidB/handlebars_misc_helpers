@@ -259,7 +259,7 @@ macro_rules! min_and_max_by {
                         expected: format!("expression->{}", entered_type),
                         actual: mapped.get_type().to_string(),
                         position: 1,
-                        invocation: invocation,
+                        invocation,
                     }),
                 ));
             }

@@ -15,7 +15,7 @@ fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, reqwest::Error> {
     reqwest::blocking::get(url.as_ref())?.text()
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     {
         handlebars_helper!(http_get: |v: str| http_get_fct(&v).map_err(|e| RenderError::from_error("http_get", e))?);
         handlebars.register_helper("http_get", Box::new(http_get))

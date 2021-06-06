@@ -33,7 +33,7 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     }
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     handlebars_helper!(env_var: |v: str| env_var_fct(&v));
     handlebars.register_helper("env_var", Box::new(env_var))
 }
