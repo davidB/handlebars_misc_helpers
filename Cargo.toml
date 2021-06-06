@@ -11,7 +11,14 @@ keywords = ["handlebars"]
 categories = ["template-engine", "value-formatting"]
 repository = "https://github.com/davidB/handlebars_misc_helpers"
 homepage = "https://github.com/davidB/handlebars_misc_helpers"
-exclude = ["/.github", "/.dependabot", "/docs/**", "/scripts", ".gitignore", "/tests/**"]
+exclude = [
+    "/.github",
+    "/.dependabot",
+    "/docs/**",
+    "/scripts",
+    ".gitignore",
+    "/tests/**",
+]
 
 [dependencies]
 handlebars = "^3.4"
@@ -19,27 +26,27 @@ log = "^0.4"
 attohttpc = { version = "^0.15", optional = true }
 Inflector = { version = "^0.11", optional = true }
 # jmespath = { version = "^0.2", optional = true }
-lazy_static = {version="^1.4", optional = true }
+lazy_static = { version = "^1.4", optional = true }
 reqwest = { version = "0.10", optional = true, features = ["blocking"] }
 serde = { version = "^1", features = ["rc"], optional = true }
 serde_json = { version = "^1", optional = true }
 serde_yaml = { version = "^0.8", optional = true }
 thiserror = "1.0"
-toml = { version = "^0.5", optional = true, features = ["preserve_order"]}
+toml = { version = "^0.5", optional = true, features = ["preserve_order"] }
 enquote = { version = "^1.0", optional = true }
-jsonnet-rs = {version = "^0.6", optional = true }
+jsonnet-rs = { version = "^0.6", optional = true }
 
 [dev-dependencies]
-spectral = "0.6.0"
-tempfile = "3.1.0"
-pretty_assertions = "0.6.1"
-unindent = "0.1.6"
+spectral = "0.6"
+tempfile = "3.1"
+pretty_assertions = "0.6"
+unindent = "0.1"
 
 [features]
-default = [ "string", "http_attohttpc", "json", "jsonnet" ]
-string = [ "Inflector", "enquote" ]
-http_attohttpc = [ "attohttpc", "http_fct" ]
-http_reqwest = [ "reqwest" , "http_fct" ]
+default = ["string", "http_attohttpc", "json", "jsonnet"]
+string = ["Inflector", "enquote"]
+http_attohttpc = ["attohttpc", "http_fct"]
+http_reqwest = ["reqwest", "http_fct"]
 http_fct = []
-json = [ "lazy_static", "serde", "serde_json", "serde_yaml", "toml" ]
-jsonnet = [ "jsonnet-rs" ]
+json = ["lazy_static", "serde", "serde_json", "serde_yaml", "toml"]
+jsonnet = ["jsonnet-rs"]
