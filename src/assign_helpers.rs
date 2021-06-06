@@ -44,7 +44,7 @@ fn assign_fct(
     Ok(())
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     handlebars.register_helper("assign", Box::new(assign_fct))
 }
 

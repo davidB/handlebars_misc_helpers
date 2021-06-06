@@ -306,6 +306,7 @@ impl<'a> Expression<'a> {
     /// Returns the AST of the parsed JMESPath expression.
     ///
     /// This can be useful for debugging purposes, caching, etc.
+    #[allow(dead_code)]
     pub fn as_ast(&self) -> &Ast {
         &self.ast
     }

@@ -34,13 +34,13 @@ impl HelperDef for first_non_empty_fct {
             //         .ok()
             //         .filter(|s| !s.is_empty())
             // })
-            .nth(0)
+            .next()
             .map(|v| ScopedJson::Derived(serde_json::Value::String(v.to_owned())))
             .unwrap_or_else(|| ScopedJson::Derived(serde_json::Value::String("".to_owned()))))
     }
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     {
         handlebars_helper!(to_lower_case: |v: str| v.to_lowercase());
         handlebars.register_helper("to_lower_case", Box::new(to_lower_case))

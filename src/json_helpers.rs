@@ -6,12 +6,9 @@ use handlebars::{
     RenderError, Renderable, ScopedJson,
 };
 use serde::Serialize;
-use serde_json;
 use serde_json::Value as Json;
-use serde_yaml;
 use std::str::FromStr;
 use thiserror::Error;
-use toml;
 use toml::value::Map;
 
 #[derive(Debug, Error)]
@@ -293,7 +290,7 @@ fn from_json_block<'reg, 'rc>(
     out: &mut dyn Output,
 ) -> HelperResult {
     let format = find_data_format(h)?;
-    let mut content = StringOutput::new();
+    let mut content = StringOutput::default();
     h.template()
         .map(|t| t.render(r, ctx, rc, &mut content))
         .unwrap_or(Ok(()))?;
@@ -312,7 +309,7 @@ fn to_json_block<'reg, 'rc>(
     out: &mut dyn Output,
 ) -> HelperResult {
     let format = find_data_format(h)?;
-    let mut content = StringOutput::new();
+    let mut content = StringOutput::default();
     h.template()
         .map(|t| t.render(r, ctx, rc, &mut content))
         .unwrap_or(Ok(()))?;
@@ -323,7 +320,7 @@ fn to_json_block<'reg, 'rc>(
 
 handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(|e| RenderError::from_error("json_query", e))?);
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     handlebars.register_helper("json_to_str", Box::new(json_to_str_fct));
     handlebars.register_helper("str_to_json", Box::new(str_to_json_fct));
     handlebars.register_helper("from_json", Box::new(from_json_block));

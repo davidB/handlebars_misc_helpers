@@ -18,7 +18,7 @@ fn jsonnet_block<'reg, 'rc>(
     rc: &mut RenderContext<'reg, 'rc>,
     out: &mut dyn Output,
 ) -> HelperResult {
-    let mut content = StringOutput::new();
+    let mut content = StringOutput::default();
     h.template()
         .map(|t| t.render(r, ctx, rc, &mut content))
         .unwrap_or(Ok(()))?;
@@ -55,7 +55,7 @@ fn jsonnet_block<'reg, 'rc>(
         .map_err(|e| RenderError::from_error("jsonnet_block", e))
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     handlebars.register_helper("jsonnet", Box::new(jsonnet_block));
 }
 

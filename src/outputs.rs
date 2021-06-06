@@ -13,13 +13,14 @@ impl Output for StringOutput {
     }
 }
 
-impl StringOutput {
-    pub fn new() -> StringOutput {
+impl Default for StringOutput {
+    fn default() -> Self {
         StringOutput {
             buf: Vec::with_capacity(8 * 1024),
         }
     }
-
+}
+impl StringOutput {
     pub fn into_string(self) -> Result<String, FromUtf8Error> {
         String::from_utf8(self.buf)
     }
