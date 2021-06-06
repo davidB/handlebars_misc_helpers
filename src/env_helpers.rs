@@ -1,4 +1,3 @@
-use handlebars::HelperDef;
 use handlebars::{handlebars_helper, Handlebars};
 
 fn env_var_fct<T: AsRef<str>>(key: T) -> String {
@@ -34,16 +33,9 @@ fn env_var_fct<T: AsRef<str>>(key: T) -> String {
     }
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![{
-        handlebars_helper!(env_var: |v: str| env_var_fct(&v));
-        handlebars.register_helper("env_var", Box::new(env_var))
-    }]
-    .into_iter()
-    .flatten()
-    .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    handlebars_helper!(env_var: |v: str| env_var_fct(&v));
+    handlebars.register_helper("env_var", Box::new(env_var))
 }
 
 #[cfg(test)]

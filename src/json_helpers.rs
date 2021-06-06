@@ -225,12 +225,12 @@ impl HelperDef for str_to_json_fct {
         h: &Helper<'reg, 'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
-        _: &mut RenderContext,
-    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        _: &mut RenderContext<'reg, 'rc>,
+    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
         let data: String = find_str_param(0, h)?;
         let format = find_data_format(h)?;
         let result = format.read_string(&data)?;
-        Ok(Some(ScopedJson::Derived(result)))
+        Ok(ScopedJson::Derived(result))
     }
 }
 
@@ -243,15 +243,15 @@ impl HelperDef for json_to_str_fct {
         h: &Helper<'reg, 'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
-        _: &mut RenderContext,
-    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        _: &mut RenderContext<'reg, 'rc>,
+    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
         let format = find_data_format(h)?;
         let data = h
             .param(0)
             .ok_or_else(|| RenderError::new("param 0 (the json) not found"))
             .map(|v| v.value())?;
         let result = format.write_string(&data)?;
-        Ok(Some(ScopedJson::Derived(Json::String(result))))
+        Ok(ScopedJson::Derived(Json::String(result)))
     }
 }
 
@@ -264,8 +264,8 @@ impl HelperDef for json_str_query_fct {
         h: &Helper<'reg, 'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
-        _: &mut RenderContext,
-    ) -> Result<Option<ScopedJson<'reg, 'rc>>, RenderError> {
+        _: &mut RenderContext<'reg, 'rc>,
+    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
         let format = find_data_format(h)?;
         let expr = find_str_param(0, h)?;
         let data_str = find_str_param(1, h)?;
@@ -273,7 +273,7 @@ impl HelperDef for json_str_query_fct {
         let result = json_query(expr, data)
             .map_err(|e| RenderError::from_error("json_query", e))
             .and_then(|v| format.write_string(&v))?;
-        Ok(Some(ScopedJson::Derived(Json::String(result))))
+        Ok(ScopedJson::Derived(Json::String(result)))
     }
 }
 
@@ -315,20 +315,13 @@ fn to_json_block<'reg, 'rc>(
 
 handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(|e| RenderError::from_error("json_query", e))?);
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![
-        { handlebars.register_helper("json_to_str", Box::new(json_to_str_fct)) },
-        { handlebars.register_helper("str_to_json", Box::new(str_to_json_fct)) },
-        { handlebars.register_helper("from_json", Box::new(from_json_block)) },
-        { handlebars.register_helper("to_json", Box::new(to_json_block)) },
-        { handlebars.register_helper("json_query", Box::new(json_query_fct)) },
-        { handlebars.register_helper("json_str_query", Box::new(json_str_query_fct)) },
-    ]
-    .into_iter()
-    .flatten()
-    .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    handlebars.register_helper("json_to_str", Box::new(json_to_str_fct));
+    handlebars.register_helper("str_to_json", Box::new(str_to_json_fct));
+    handlebars.register_helper("from_json", Box::new(from_json_block));
+    handlebars.register_helper("to_json", Box::new(to_json_block));
+    handlebars.register_helper("json_query", Box::new(json_query_fct));
+    handlebars.register_helper("json_str_query", Box::new(json_str_query_fct));
 }
 
 #[cfg(test)]
@@ -511,16 +504,18 @@ mod tests {
                 r##"{{ json_str_query "foo" "{\"foo\":{\"bar\":{\"baz\":true}}}" format="yaml"}}"##,
                 &normalize_nl(
                     "
-                bar:
-                  baz: true"
+                    bar:
+                      baz: true
+                    "
                 )
             ),
             (
                 r##"{{ json_str_query "foo" "foo:\n bar:\n  baz: true\n" format="yaml"}}"##,
                 &normalize_nl(
                     "
-                bar:
-                  baz: true"
+                    bar:
+                      baz: true
+                    "
                 )
             ),
             (
@@ -639,7 +634,8 @@ mod tests {
                     r##"
                     foo:
                       bar:
-                        baz: true"##
+                        baz: true
+                    "##
                 )
             ),
             (

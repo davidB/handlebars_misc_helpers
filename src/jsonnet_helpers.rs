@@ -1,7 +1,6 @@
 use crate::outputs::StringOutput;
 use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError,
-    Renderable,
+    Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderError, Renderable,
 };
 use jsonnet::JsonnetVm;
 use thiserror::Error;
@@ -56,13 +55,8 @@ fn jsonnet_block<'reg, 'rc>(
         .map_err(|e| RenderError::from_error("jsonnet_block", e))
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![{ handlebars.register_helper("jsonnet", Box::new(jsonnet_block)) }]
-        .into_iter()
-        .flatten()
-        .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    handlebars.register_helper("jsonnet", Box::new(jsonnet_block));
 }
 
 #[cfg(test)]

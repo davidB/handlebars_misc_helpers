@@ -1,4 +1,3 @@
-use handlebars::HelperDef;
 use handlebars::{handlebars_helper, Handlebars};
 use std::path::{Path, PathBuf};
 
@@ -13,36 +12,29 @@ fn expand(s: &str) -> PathBuf {
     }
 }
 
-pub fn register<'reg>(
-    handlebars: &mut Handlebars<'reg>,
-) -> Vec<Box<dyn HelperDef + 'reg + Send + Sync>> {
-    vec![
-        {
-            handlebars_helper!(parent: |v: str| {
-                expand(&v).parent().and_then(|s| s.to_str()).unwrap_or("").to_owned()
-            });
-            handlebars.register_helper("parent", Box::new(parent))
-        },
-        {
-            handlebars_helper!(file_name: |v: str| {
-                expand(&v).file_name().and_then(|s| s.to_str()).unwrap_or("").to_owned()
-            });
-            handlebars.register_helper("file_name", Box::new(file_name))
-        },
-        {
-            handlebars_helper!(extension: |v: str| expand(&v).extension().and_then(|s| s.to_str()).unwrap_or("").to_owned());
-            handlebars.register_helper("extension", Box::new(extension))
-        },
-        {
-            handlebars_helper!(canonicalize: |v: str| {
-                Path::new(v).canonicalize().ok().and_then(|s| s.to_str().map(|v| v.to_owned())).unwrap_or_else(|| "".into())
-            });
-            handlebars.register_helper("canonicalize", Box::new(canonicalize))
-        },
-    ]
-    .into_iter()
-    .flatten()
-    .collect()
+pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+    {
+        handlebars_helper!(parent: |v: str| {
+            expand(&v).parent().and_then(|s| s.to_str()).unwrap_or("").to_owned()
+        });
+        handlebars.register_helper("parent", Box::new(parent))
+    }
+    {
+        handlebars_helper!(file_name: |v: str| {
+            expand(&v).file_name().and_then(|s| s.to_str()).unwrap_or("").to_owned()
+        });
+        handlebars.register_helper("file_name", Box::new(file_name))
+    }
+    {
+        handlebars_helper!(extension: |v: str| expand(&v).extension().and_then(|s| s.to_str()).unwrap_or("").to_owned());
+        handlebars.register_helper("extension", Box::new(extension))
+    }
+    {
+        handlebars_helper!(canonicalize: |v: str| {
+            Path::new(v).canonicalize().ok().and_then(|s| s.to_str().map(|v| v.to_owned())).unwrap_or_else(|| "".into())
+        });
+        handlebars.register_helper("canonicalize", Box::new(canonicalize))
+    }
 }
 
 #[cfg(test)]
