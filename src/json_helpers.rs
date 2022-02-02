@@ -120,7 +120,6 @@ fn to_ordored_toml_value(data: &Json) -> Result<Option<toml::Value>, RenderError
 }
 
 fn sort_toml_map(data: Map<String, toml::Value>) -> Map<String, toml::Value> {
-    dbg!(&data);
     let (tables, non_tables): (Vec<(String, toml::Value)>, Vec<(String, toml::Value)>) =
         data.into_iter().partition(|v| v.1.is_table());
     let (arrays, others): (Vec<(String, toml::Value)>, Vec<(String, toml::Value)>) =
@@ -129,7 +128,6 @@ fn sort_toml_map(data: Map<String, toml::Value>) -> Map<String, toml::Value> {
     m.extend(others);
     m.extend(arrays);
     m.extend(tables);
-    dbg!(&m);
     m
 }
 
@@ -152,7 +150,6 @@ impl DataFormat {
     }
 
     fn write_string(&self, data: &Json) -> Result<String, RenderError> {
-        dbg!("write_string {}", &self);
         match data {
             Json::Null => Ok("".to_owned()),
             Json::String(c) if c.is_empty() => Ok("".to_owned()),
