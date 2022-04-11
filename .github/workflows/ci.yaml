@@ -33,7 +33,7 @@ jobs:
           override: true
           profile: ${{matrix.os.profile_rustup}}
       - uses: davidB/rust-cargo-make@v1
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3.0.0
       - name: Run tests
         run: cargo make --profile "${{matrix.os.profile_ci_flow}}" ci-flow
         env:
