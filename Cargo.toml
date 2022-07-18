@@ -44,7 +44,7 @@ unindent = "0.1"
 
 [features]
 default = ["string", "http_attohttpc", "json", "jsonnet"]
-string = ["Inflector", "enquote"]
+string = ["Inflector", "enquote", "serde_json"]
 http_attohttpc = ["attohttpc", "http_fct"]
 http_reqwest = ["reqwest", "http_fct"]
 http_fct = []
