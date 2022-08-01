@@ -30,7 +30,7 @@ lazy_static = { version = "^1.4", optional = true }
 reqwest = { version = "0.11", optional = true, features = ["blocking"] }
 serde = { version = "^1", features = ["rc"], optional = true }
 serde_json = { version = "^1", optional = true }
-serde_yaml = { version = "^0.8", optional = true }
+serde_yaml = { version = "^0.9", optional = true }
 thiserror = "1.0"
 toml = { version = "^0.5", optional = true, features = ["preserve_order"] }
 enquote = { version = "^1.0", optional = true }
