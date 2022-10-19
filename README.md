@@ -36,11 +36,13 @@ To not "import" useless dependencies, use crate's features:
 
 ```toml
 [features]
-default = [ "string", "http", "json", "jsonnet" ]
-string = [ "Inflector", "enquote" ]
-http = [ "attohttpc" ]
-json = [ "lazy_static", "serde", "serde_json", "serde-transcode", "serde_yaml", "toml" ]
-jsonnet = [ "jsonnet-rs" ]
+default = ["string", "http_attohttpc", "json", "jsonnet"]
+string = ["Inflector", "enquote"]
+http_attohttpc = ["attohttpc", "http_fct"]
+http_reqwest = ["reqwest", "http_fct"]
+http_fct = []
+json = ["lazy_static", "serde", "serde_json", "serde_yaml", "toml"]
+jsonnet = ["jsonnet-rs"]
 ```
 
 <!-- TOC depthFrom:2 -->
