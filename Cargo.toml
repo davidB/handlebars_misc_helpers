@@ -40,7 +40,7 @@ jsonnet-rs = { version = "^0.17", optional = true }
 spectral = "0.6"
 tempfile = "3.1"
 pretty_assertions = "1.1"
-unindent = "0.1"
+unindent = "0.2"
 
 [features]
 default = ["string", "http_attohttpc", "json", "jsonnet"]
