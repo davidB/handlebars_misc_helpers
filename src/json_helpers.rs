@@ -139,12 +139,12 @@ impl DataFormat {
         }
         match self {
             DataFormat::Json | DataFormat::JsonPretty => {
-                serde_json::from_str(&data).map_err(RenderError::from)
+                serde_json::from_str(data).map_err(RenderError::from)
             }
-            DataFormat::Yaml => serde_yaml::from_str(&data)
+            DataFormat::Yaml => serde_yaml::from_str(data)
                 .map_err(|e| RenderError::from_error("serde_yaml::from_str", e)),
             DataFormat::Toml | DataFormat::TomlPretty => {
-                toml::from_str(&data).map_err(|e| RenderError::from_error("toml::from_str", e))
+                toml::from_str(data).map_err(|e| RenderError::from_error("toml::from_str", e))
             }
         }
     }
@@ -244,7 +244,7 @@ impl HelperDef for json_to_str_fct {
             .param(0)
             .ok_or_else(|| RenderError::new("param 0 (the json) not found"))
             .map(|v| v.value())?;
-        let result = format.write_string(&data)?;
+        let result = format.write_string(data)?;
         Ok(ScopedJson::Derived(Json::String(result)))
     }
 }
@@ -377,7 +377,7 @@ mod tests {
 
     #[test]
     fn test_search_path_in_empty() -> Result<(), Box<dyn Error>> {
-        for v in vec!["{}", "[]", "null", "\"\""] {
+        for v in ["{}", "[]", "null", "\"\""] {
             let json: Json = serde_json::from_str(v)?;
             let result = json_query("foo.bar.baz", json)?;
             assert_that!(result).is_equal_to(Json::Null);

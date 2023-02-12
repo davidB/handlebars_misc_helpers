@@ -49,7 +49,7 @@ pub fn setup_handlebars(handlebars: &mut Handlebars) {
     register(handlebars);
 }
 
-pub fn register<'reg>(handlebars: &mut Handlebars<'reg>) {
+pub fn register(handlebars: &mut Handlebars) {
     #[cfg(feature = "string")]
     string_helpers::register(handlebars);
     #[cfg(feature = "http_fct")]
@@ -89,7 +89,7 @@ mod tests {
     }
 
     pub(crate) fn normalize_nl(s: &str) -> String {
-        unindent(s).replace("\r\n", "\n").replace("\r", "")
+        unindent(s).replace("\r\n", "\n").replace('\r', "")
     }
 
     #[macro_export]

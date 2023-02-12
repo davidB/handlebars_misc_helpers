@@ -78,11 +78,11 @@ pub fn register(handlebars: &mut Handlebars) {
     handlebars_register_inflector!(handlebars, to_plural);
     handlebars_register_inflector!(handlebars, to_singular);
     {
-        handlebars_helper!(quote: |quote_symbol: str, v: str| enquote::enquote(quote_symbol.chars().next().unwrap_or('"'), &v));
+        handlebars_helper!(quote: |quote_symbol: str, v: str| enquote::enquote(quote_symbol.chars().next().unwrap_or('"'), v));
         handlebars.register_helper("quote", Box::new(quote))
     }
     {
-        handlebars_helper!(unquote: |v: str| match enquote::unquote(&v){
+        handlebars_helper!(unquote: |v: str| match enquote::unquote(v){
             Err(e) => {
                 log::warn!(
                     "helper: unquote failed for string '{:?}' with error '{:?}'",

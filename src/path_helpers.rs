@@ -15,18 +15,18 @@ fn expand(s: &str) -> PathBuf {
 pub fn register(handlebars: &mut Handlebars) {
     {
         handlebars_helper!(parent: |v: str| {
-            expand(&v).parent().and_then(|s| s.to_str()).unwrap_or("").to_owned()
+            expand(v).parent().and_then(|s| s.to_str()).unwrap_or("").to_owned()
         });
         handlebars.register_helper("parent", Box::new(parent))
     }
     {
         handlebars_helper!(file_name: |v: str| {
-            expand(&v).file_name().and_then(|s| s.to_str()).unwrap_or("").to_owned()
+            expand(v).file_name().and_then(|s| s.to_str()).unwrap_or("").to_owned()
         });
         handlebars.register_helper("file_name", Box::new(file_name))
     }
     {
-        handlebars_helper!(extension: |v: str| expand(&v).extension().and_then(|s| s.to_str()).unwrap_or("").to_owned());
+        handlebars_helper!(extension: |v: str| expand(v).extension().and_then(|s| s.to_str()).unwrap_or("").to_owned());
         handlebars.register_helper("extension", Box::new(extension))
     }
     {
