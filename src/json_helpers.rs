@@ -1,15 +1,16 @@
-use crate::jmespath;
-use crate::jmespath::ToJmespath;
 use crate::outputs::StringOutput;
 use handlebars::{
     handlebars_helper, Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext,
     RenderError, Renderable, ScopedJson,
 };
+use jmespath;
 use serde::Serialize;
 use serde_json::Value as Json;
 use std::str::FromStr;
 use thiserror::Error;
-use toml::value::Map;
+use toml::value::Table;
+
+type TablePartition = Vec<(String, toml::Value)>;
 
 #[derive(Debug, Error)]
 enum JsonError {
@@ -100,7 +101,7 @@ fn to_ordored_toml_value(data: &Json) -> Result<Option<toml::Value>, RenderError
                 to_opt_res(to_ordored_toml_value(kv.1))
                     .map(|rnv| rnv.map(|nv| (kv.0.to_owned(), nv)))
             })
-            .collect::<Result<Map<String, toml::Value>, _>>()
+            .collect::<Result<Table, _>>()
             .map(|m| Some(toml::Value::Table(sort_toml_map(m)))),
         Json::Number(v) => {
             if v.is_i64() {
@@ -119,12 +120,12 @@ fn to_ordored_toml_value(data: &Json) -> Result<Option<toml::Value>, RenderError
     }
 }
 
-fn sort_toml_map(data: Map<String, toml::Value>) -> Map<String, toml::Value> {
-    let (tables, non_tables): (Vec<(String, toml::Value)>, Vec<(String, toml::Value)>) =
+fn sort_toml_map(data: Table) -> Table {
+    let (tables, non_tables): (TablePartition, TablePartition) =
         data.into_iter().partition(|v| v.1.is_table());
-    let (arrays, others): (Vec<(String, toml::Value)>, Vec<(String, toml::Value)>) =
+    let (arrays, others): (TablePartition, TablePartition) =
         non_tables.into_iter().partition(|v| v.1.is_array());
-    let mut m = Map::new();
+    let mut m = Table::new();
     m.extend(others);
     m.extend(arrays);
     m.extend(tables);
@@ -177,7 +178,7 @@ impl DataFormat {
 }
 
 fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, JsonError> {
-    let data = data.to_jmespath();
+    // let data = data.to_jmespath();
     let res = jmespath::compile(expr.as_ref())
         .and_then(|e| e.search(data))
         .map_err(|source| JsonError::JsonQueryFailure {
@@ -267,7 +268,12 @@ impl HelperDef for json_str_query_fct {
         let result = json_query(expr, data)
             .map_err(|e| RenderError::from_error("json_query", e))
             .and_then(|v| {
-                format.write_string(&v).map(|s| {
+                let output_format = if v.is_array() || v.is_object() {
+                    format
+                } else {
+                    DataFormat::Json
+                };
+                output_format.write_string(&v).map(|s| {
                     if v.is_array() || v.is_object() {
                         s
                     } else {
@@ -538,6 +544,7 @@ mod tests {
                     "
                 ),
             ),
+            // returning a single value is not a valid toml
             (
                 r##"{{ json_str_query "foo.bar.baz" "[foo.bar]\nbaz=true\n" format="toml"}}"##,
                 "true",
@@ -608,15 +615,6 @@ mod tests {
             (
                 r##"{{#from_json}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
                 r##"{"foo":{"bar":{"baz":true}}}"##
-                // &normalize_nl(indoc!(
-                //     r##"{
-                //       "foo": {
-                //         "bar": {
-                //           "baz": true
-                //         }
-                //       }
-                //     }"##
-                // )),
             ),
             (
                 r##"{{#from_json format="json_pretty"}}{"foo":{"bar":{"baz":true}}}{{/from_json}}"##,
@@ -666,7 +664,7 @@ mod tests {
                 &normalize_nl(
                     r##"
                     [foo]
-                    hello = '1.2.4'
+                    hello = "1.2.4"
 
                     [foo.bar]
                     baz = true

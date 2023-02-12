@@ -17,8 +17,6 @@ pub mod file_helpers;
 #[cfg(feature = "http_fct")]
 pub mod http_helpers;
 #[cfg(feature = "json")]
-mod jmespath;
-#[cfg(feature = "json")]
 pub mod json_helpers;
 #[cfg(feature = "jsonnet")]
 pub mod jsonnet_helpers;
@@ -152,7 +150,7 @@ mod tests {
             ),
             (
                 r##"{{ first_non_empty (unquote (json_str_query "package.edition" (read_to_str "Cargo.toml") format="toml")) (env_var "MY_VERSION") "0.0.0" }}"##,
-                r##"2018"##
+                r##"2021"##
             ),
         ]
     }
