@@ -257,7 +257,7 @@ hello = "1.2.3"
 }</code></pre></td>
 </tr>
 <tr>
-<td><pre><code>{{#from_json format="toml"}}
+<td><pre><code>{{#from_json format="yaml"}}
 {"foo":{"bar":{"baz":true}}}
 {{/from_json}}</code></pre>
 </td>
