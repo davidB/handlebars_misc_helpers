@@ -24,6 +24,7 @@ pub mod outputs;
 pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
+pub mod region_helpers;
 
 #[derive(Debug, Error)]
 enum HelperError {
@@ -60,6 +61,7 @@ pub fn register(handlebars: &mut Handlebars) {
     jsonnet_helpers::register(handlebars);
     assign_helpers::register(handlebars);
     file_helpers::register(handlebars);
+    region_helpers::register(handlebars);
 }
 
 #[cfg(test)]
