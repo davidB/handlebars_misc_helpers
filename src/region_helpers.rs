@@ -29,6 +29,11 @@ impl HelperDef for ReplaceSectionHelper {
             return Ok(());
         };
 
+        let remove_boundaries = h
+            .hash_get("remove_boundaries")
+            .and_then(|it| it.value().as_bool())
+            .unwrap_or_default();
+
         let Some(begin) = h.hash_get("begin").and_then(|it| it.value().as_str()) else {
             warn!("`replace_section` helper require a 'begin' string value");
             return Ok(());
@@ -39,7 +44,7 @@ impl HelperDef for ReplaceSectionHelper {
         };
 
         let Some(end) = h.hash_get("end").and_then(|it| it.value().as_str()) else {
-            warn!("`replace_section` helper require a 'begin' string value ");
+            warn!("`replace_section` helper require a 'end' string value ");
             return Ok(());
         };
         let Some((_, after)) = inner.split_once(end) else {
@@ -48,7 +53,13 @@ impl HelperDef for ReplaceSectionHelper {
         };
 
         out.write(before)?;
+        if !remove_boundaries {
+            out.write(begin)?;
+        }
         tmpl.render(hbs, ctx, rc, out)?;
+        if !remove_boundaries {
+            out.write(end)?;
+        }
         out.write(after)?;
 
         Ok(())
@@ -81,20 +92,57 @@ mod tests {
 </html>
 "#;
 
-    const TEMPLATE: &str = r#"
-{{~#replace_section  begin="<!-- #region head-->" end="<!-- #endregion head -->" content }}
-This is the new content of the block
-{{~/replace_section}}
-"#;
-
     #[test]
-
     fn test_helper_replace_section() -> Result<(), Box<dyn Error>> {
         let data = json!({
             "content": INPUT,
         });
         let mut hbs = new_hbs();
-        hbs.register_template_string("test", TEMPLATE)?;
+        hbs.register_template_string(
+            "test",
+            r#"{{#replace_section  begin="<!-- #region head-->" end="<!-- #endregion head -->" content }}
+
+    This is the new content of the block
+    {{/replace_section}}"#,
+        )?;
+
+        let result = hbs.render("test", &data)?;
+
+        assert_eq!(
+            result,
+            r#"
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    </head>
+    <body>
+    <!-- #region head-->
+    This is the new content of the block
+    <!-- #endregion head -->
+    </body>
+</html>
+"#,
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_helper_replace_section_remove_remove_boundaries() -> Result<(), Box<dyn Error>> {
+        let data = json!({
+            "content": INPUT,
+        });
+        let mut hbs = new_hbs();
+        hbs.register_template_string(
+            "test",
+            r#"{{~#replace_section  begin="<!-- #region head-->" end="<!-- #endregion head -->" remove_boundaries=true content }}
+This is the new content of the block
+{{~/replace_section}}"#,
+        )?;
 
         let result = hbs.render("test", &data)?;
 
