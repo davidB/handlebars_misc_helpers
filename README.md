@@ -329,3 +329,53 @@ Helper able to assign (to set) a variable to use later in the template.
 | `{{ assign "foo" "hello world" }}{{ foo }}` | `hello world` |
 | `{{ assign "foo" {} }}{{ foo }}`            | `[object]`    |
 | `{{ assign "foo" {"bar": 33} }}{{ foo }}`   | `[object]`    |
+
+## Replace section
+
+Helper able to replace a section delimited by a boundary.
+
+For example with this template:
+
+```handlebars
+{{~#replace_section  begin="<!-- #region head-->" end="<!-- #endregion head -->" content }}
+This is the new content of the block
+{{~/replace_section}}
+```
+
+And the `content` having
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- #region head-->
+    Something by default
+    <!-- #endregion head -->
+  </body>
+</html>
+```
+
+The content between `<!-- #region head-->` and `<!-- #endregion head -->` is replaced by the result of the inner template:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- #region head-->This is the new content of the block<!-- #endregion head -->
+  </body>
+</html>
+```
+
+Note: you can remove the boundary by adding `remove_boundaries=true`.
