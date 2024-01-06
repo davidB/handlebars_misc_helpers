@@ -22,9 +22,9 @@ pub mod json_helpers;
 pub mod jsonnet_helpers;
 pub mod outputs;
 pub mod path_helpers;
+pub mod region_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
-pub mod region_helpers;
 
 #[derive(Debug, Error)]
 enum HelperError {

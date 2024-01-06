@@ -1,6 +1,6 @@
 use crate::outputs::StringOutput;
 use handlebars::{
-    Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderError, Renderable,
+    Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderErrorReason, Renderable,
 };
 use jsonnet::JsonnetVm;
 use thiserror::Error;
@@ -12,7 +12,7 @@ enum JsonnetError {
 }
 
 fn jsonnet_block<'reg, 'rc>(
-    h: &Helper<'reg, 'rc>,
+    h: &Helper<'rc>,
     r: &'reg Handlebars,
     ctx: &'rc Context,
     rc: &mut RenderContext<'reg, 'rc>,
@@ -37,22 +37,16 @@ fn jsonnet_block<'reg, 'rc>(
         //         .and_then(|v| v.value().as_u64())
         //         .unwrap_or(4) as u32,
         // );
-        let s = vm
-            .evaluate_snippet("snippet", &input)
-            .map_err(|e| {
-                RenderError::from_error(
-                    "jsonnet_block",
-                    JsonnetError::EvaluateError {
-                        source_str: format!("{:?}", e),
-                    },
-                )
-            })?
-            .to_string();
-        s
+        let s = vm.evaluate_snippet("snippet", &input).map_err(|e| {
+            RenderErrorReason::NestedError(Box::new(JsonnetError::EvaluateError {
+                source_str: format!("{:?}", e),
+            }))
+        })?;
+        s.to_string()
     };
 
     out.write(&res)
-        .map_err(|e| RenderError::from_error("jsonnet_block", e))
+        .map_err(|e| RenderErrorReason::NestedError(Box::new(e)).into())
 }
 
 pub fn register(handlebars: &mut Handlebars) {

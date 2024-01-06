@@ -1,7 +1,7 @@
 use crate::outputs::StringOutput;
 use handlebars::{
     handlebars_helper, Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext,
-    RenderError, Renderable, ScopedJson,
+    RenderError, RenderErrorReason, Renderable, ScopedJson,
 };
 use jmespath;
 use serde::Serialize;
@@ -17,7 +17,7 @@ enum JsonError {
     #[error("query failure for expression '{expression}'")]
     JsonQueryFailure {
         expression: String,
-        source: jmespath::JmespathError,
+        source: Box<jmespath::JmespathError>,
     },
     #[error("fail to convert '{input}'")]
     ToJsonValueError {
@@ -109,10 +109,11 @@ fn to_ordored_toml_value(data: &Json) -> Result<Option<toml::Value>, RenderError
             } else if let Some(x) = v.as_f64() {
                 Ok(Some(toml::Value::Float(x)))
             } else {
-                Err(RenderError::new(format!(
+                Err(RenderErrorReason::Other(format!(
                     "to_toml:can not convert a Json Number: {}",
                     v
-                )))
+                ))
+                .into())
             }
         }
         Json::Bool(v) => Ok(Some(toml::Value::Boolean(*v))),
@@ -140,14 +141,16 @@ impl DataFormat {
         }
         match self {
             DataFormat::Json | DataFormat::JsonPretty => {
-                serde_json::from_str(data).map_err(RenderError::from)
+                serde_json::from_str(data).map_err(RenderErrorReason::from)
             }
-            DataFormat::Yaml => serde_yaml::from_str(data)
-                .map_err(|e| RenderError::from_error("serde_yaml::from_str", e)),
+            DataFormat::Yaml => {
+                serde_yaml::from_str(data).map_err(|e| RenderErrorReason::NestedError(Box::new(e)))
+            }
             DataFormat::Toml | DataFormat::TomlPretty => {
-                toml::from_str(data).map_err(|e| RenderError::from_error("toml::from_str", e))
+                toml::from_str(data).map_err(|e| RenderErrorReason::NestedError(Box::new(e)))
             }
         }
+        .map_err(Into::into)
     }
 
     fn write_string(&self, data: &Json) -> Result<String, RenderError> {
@@ -155,25 +158,26 @@ impl DataFormat {
             Json::Null => Ok("".to_owned()),
             Json::String(c) if c.is_empty() => Ok("".to_owned()),
             _ => match self {
-                DataFormat::Json => serde_json::to_string(data).map_err(RenderError::from),
+                DataFormat::Json => serde_json::to_string(data).map_err(RenderErrorReason::from),
                 DataFormat::JsonPretty => {
-                    serde_json::to_string_pretty(data).map_err(RenderError::from)
+                    serde_json::to_string_pretty(data).map_err(RenderErrorReason::from)
                 }
                 DataFormat::Yaml => serde_yaml::to_string(data)
-                    .map_err(|e| RenderError::from_error("serde_yaml::to_string", e))
+                    .map_err(|e| RenderErrorReason::NestedError(Box::new(e)))
                     .map(|s| s.trim_start_matches("---\n").to_string()),
                 DataFormat::Toml => {
                     let data_toml = to_ordored_toml_value(data)?;
                     toml::to_string(&data_toml)
-                        .map_err(|e| RenderError::from_error("toml::to_string", e))
+                        .map_err(|e| RenderErrorReason::NestedError(Box::new(e)))
                 }
                 DataFormat::TomlPretty => {
                     let data_toml = to_ordored_toml_value(data)?;
                     toml::to_string_pretty(&data_toml)
-                        .map_err(|e| RenderError::from_error("toml::to_string_pretty", e))
+                        .map_err(|e| RenderErrorReason::NestedError(Box::new(e)))
                 }
             },
         }
+        .map_err(Into::into)
     }
 }
 
@@ -183,7 +187,7 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
         .and_then(|e| e.search(data))
         .map_err(|source| JsonError::JsonQueryFailure {
             expression: expr.as_ref().to_string(),
-            source,
+            source: Box::new(source),
         })?;
     serde_json::to_value(res.as_ref()).map_err(|source| JsonError::ToJsonValueError {
         input: format!("{:?}", res),
@@ -191,20 +195,19 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
     })
 }
 
-fn find_data_format<'reg: 'rc, 'rc>(h: &Helper<'reg, 'rc>) -> Result<DataFormat, RenderError> {
+fn find_data_format<'reg: 'rc, 'rc>(h: &Helper<'rc>) -> Result<DataFormat, RenderError> {
     let param = h
         .hash_get("format")
         .and_then(|v| v.value().as_str())
         .unwrap_or("json");
-    DataFormat::from_str(param).map_err(|e| RenderError::from_error("DataFormat::from_str", e))
+    DataFormat::from_str(param).map_err(|e| RenderErrorReason::NestedError(Box::new(e)).into())
 }
 
-fn find_str_param<'reg: 'rc, 'rc>(
-    pos: usize,
-    h: &Helper<'reg, 'rc>,
-) -> Result<String, RenderError> {
+fn find_str_param<'reg: 'rc, 'rc>(pos: usize, h: &Helper<'rc>) -> Result<String, RenderError> {
     h.param(pos)
-        .ok_or_else(|| RenderError::new(format!("param {} (the string) not found", pos)))
+        .ok_or_else(|| {
+            RenderErrorReason::Other(format!("param {} (the string) not found", pos)).into()
+        })
         // .and_then(|v| {
         //     serde_json::from_value::<String>(v.value().clone()).map_err(RenderError::with)
         // })
@@ -217,11 +220,11 @@ pub struct str_to_json_fct;
 impl HelperDef for str_to_json_fct {
     fn call_inner<'reg: 'rc, 'rc>(
         &self,
-        h: &Helper<'reg, 'rc>,
+        h: &Helper<'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
         _: &mut RenderContext<'reg, 'rc>,
-    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
+    ) -> Result<ScopedJson<'rc>, RenderError> {
         let data: String = find_str_param(0, h)?;
         let format = find_data_format(h)?;
         let result = format.read_string(&data)?;
@@ -235,15 +238,15 @@ pub struct json_to_str_fct;
 impl HelperDef for json_to_str_fct {
     fn call_inner<'reg: 'rc, 'rc>(
         &self,
-        h: &Helper<'reg, 'rc>,
+        h: &Helper<'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
         _: &mut RenderContext<'reg, 'rc>,
-    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
+    ) -> Result<ScopedJson<'rc>, RenderError> {
         let format = find_data_format(h)?;
         let data = h
             .param(0)
-            .ok_or_else(|| RenderError::new("param 0 (the json) not found"))
+            .ok_or_else(|| RenderErrorReason::Other("param 0 (the json) not found".to_string()))
             .map(|v| v.value())?;
         let result = format.write_string(data)?;
         Ok(ScopedJson::Derived(Json::String(result)))
@@ -256,17 +259,17 @@ pub struct json_str_query_fct;
 impl HelperDef for json_str_query_fct {
     fn call_inner<'reg: 'rc, 'rc>(
         &self,
-        h: &Helper<'reg, 'rc>,
+        h: &Helper<'rc>,
         _: &'reg Handlebars,
         _: &'rc Context,
         _: &mut RenderContext<'reg, 'rc>,
-    ) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
+    ) -> Result<ScopedJson<'rc>, RenderError> {
         let format = find_data_format(h)?;
         let expr = find_str_param(0, h)?;
         let data_str = find_str_param(1, h)?;
         let data = format.read_string(&data_str)?;
         let result = json_query(expr, data)
-            .map_err(|e| RenderError::from_error("json_query", e))
+            .map_err(|e| RenderErrorReason::NestedError(Box::new(e)).into())
             .and_then(|v| {
                 let output_format = if v.is_array() || v.is_object() {
                     format
@@ -286,7 +289,7 @@ impl HelperDef for json_str_query_fct {
 }
 
 fn from_json_block<'reg, 'rc>(
-    h: &Helper<'reg, 'rc>,
+    h: &Helper<'rc>,
     r: &'reg Handlebars,
     ctx: &'rc Context,
     rc: &mut RenderContext<'reg, 'rc>,
@@ -301,11 +304,11 @@ fn from_json_block<'reg, 'rc>(
     let res = format.write_string(&data)?;
 
     out.write(&res)
-        .map_err(|e| RenderError::from_error("from_json_block", e))
+        .map_err(|e| RenderErrorReason::NestedError(Box::new(e)).into())
 }
 
 fn to_json_block<'reg, 'rc>(
-    h: &Helper<'reg, 'rc>,
+    h: &Helper<'rc>,
     r: &'reg Handlebars,
     ctx: &'rc Context,
     rc: &mut RenderContext<'reg, 'rc>,
@@ -321,7 +324,7 @@ fn to_json_block<'reg, 'rc>(
     out.write(&res).map_err(RenderError::from)
 }
 
-handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(|e| RenderError::from_error("json_query", e))?);
+handlebars_helper!(json_query_fct: |expr: str, data: Json| json_query(expr, data).map_err(|e| <RenderErrorReason as Into<RenderError>>::into(RenderErrorReason::NestedError(Box::new(e))))?);
 
 pub fn register(handlebars: &mut Handlebars) {
     handlebars.register_helper("json_to_str", Box::new(json_to_str_fct));

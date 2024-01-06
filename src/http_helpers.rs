@@ -1,6 +1,6 @@
 #[cfg(feature = "http_attohttpc")]
 use attohttpc;
-use handlebars::RenderError;
+use handlebars::RenderErrorReason;
 use handlebars::{handlebars_helper, Handlebars};
 #[cfg(all(feature = "http_reqwest", not(feature = "http_attohttpc")))]
 use reqwest;
@@ -17,11 +17,13 @@ fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, reqwest::Error> {
 
 pub fn register(handlebars: &mut Handlebars) {
     {
-        handlebars_helper!(http_get: |v: str| http_get_fct(v).map_err(|e| RenderError::from_error("http_get", e))?);
+        handlebars_helper!(http_get: |v: str| http_get_fct(v).map_err(|e| RenderErrorReason::NestedError(
+            Box::new( e)))?);
         handlebars.register_helper("http_get", Box::new(http_get))
     }
     {
-        handlebars_helper!(gitignore_io: |v: str| http_get_fct(format!("https://www.gitignore.io/api/{}", v)).map_err(|e|RenderError::from_error("http_get", e))?);
+        handlebars_helper!(gitignore_io: |v: str| http_get_fct(format!("https://www.gitignore.io/api/{}", v)).map_err(|e|RenderErrorReason::NestedError(
+            Box::new( e)))?);
         handlebars.register_helper("gitignore_io", Box::new(gitignore_io))
     }
 }
