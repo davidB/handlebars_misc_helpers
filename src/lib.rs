@@ -9,7 +9,6 @@
 
 use handlebars::no_escape;
 use handlebars::Handlebars;
-use thiserror::Error;
 
 pub mod assign_helpers;
 pub mod env_helpers;
@@ -25,16 +24,6 @@ pub mod path_helpers;
 pub mod region_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
-
-#[derive(Debug, Error)]
-enum HelperError {
-    #[error("missing param {position} '{name}' of '{helper_signature}'")]
-    MissingParameter {
-        position: usize,
-        name: String,
-        helper_signature: String,
-    },
-}
 
 pub fn new_hbs<'reg>() -> Handlebars<'reg> {
     let mut handlebars = Handlebars::new();

@@ -1,4 +1,3 @@
-use crate::HelperError::MissingParameter;
 use handlebars::Handlebars;
 use handlebars::Helper;
 use handlebars::HelperResult;
@@ -14,20 +13,15 @@ fn assign_fct(
     _: &mut dyn Output,
 ) -> HelperResult {
     // get parameter from helper or throw an error
-    let name = h.param(0).and_then(|v| v.value().as_str()).ok_or_else(|| {
-        RenderErrorReason::NestedError(Box::new(MissingParameter {
-            position: 0,
-            name: "var_name".to_owned(),
-            helper_signature: "assign var_name value".to_owned(),
-        }))
-    })?;
-    let value = h.param(1).map(|v| v.value()).cloned().ok_or_else(|| {
-        RenderErrorReason::NestedError(Box::new(MissingParameter {
-            position: 1,
-            name: "value".to_owned(),
-            helper_signature: "assign var_name value".to_owned(),
-        }))
-    })?;
+    let name = h
+        .param(0)
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderErrorReason::ParamNotFoundForIndex("var_name", 0))?;
+    let value = h
+        .param(1)
+        .map(|v| v.value())
+        .cloned()
+        .ok_or_else(|| RenderErrorReason::ParamNotFoundForIndex("var_name", 1))?;
     let mut ctx = ctx.clone();
     match ctx.data_mut() {
         serde_json::value::Value::Object(m) => m.insert(name.to_owned(), value),
