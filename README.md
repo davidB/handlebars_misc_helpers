@@ -37,7 +37,7 @@ To not "import" useless dependencies, use crate's features:
 ```toml
 [features]
 default = ["string", "http_attohttpc", "json", "jsonnet"]
-string = ["Inflector", "enquote"]
+string = ["cruet", "enquote"]
 http_attohttpc = ["attohttpc", "http_fct"]
 http_reqwest = ["reqwest", "http_fct"]
 http_fct = []
@@ -52,39 +52,44 @@ jsonnet = ["jsonnet-rs"]
 - [Path extraction](#path-extraction)
 - [File](#file)
 - [Environment variable](#environment-variable)
-- [JSON & YAML & TOML](#json--yaml--toml)
+- [JSON \& YAML \& TOML](#json--yaml--toml)
   - [Helpers](#helpers)
   - [Blocks](#blocks)
   - [Edition via jsonnet](#edition-via-jsonnet)
 - [Assign](#assign)
+- [Replace section](#replace-section)
 
 <!-- /TOC -->
 
 ## String transformation
 
-| helper signature                         | usage sample                               | sample out         |
-| ---------------------------------------- | ------------------------------------------ | ------------------ |
-| `replace s:String from:String to:String` | `replace "Hello old" "old" "new"`          | `"Hello new"`      |
-| `to_lower_case s:String`                 | `to_lower_case "Hello foo-bars"`           | `"hello foo-bars"` |
-| `to_upper_case s:String`                 | `to_upper_case "Hello foo-bars"`           | `"HELLO FOO-BARS"` |
-| `to_camel_case s:String`                 | `to_camel_case "Hello foo-bars"`           | `"helloFooBars"`   |
-| `to_pascal_case s:String`                | `to_pascal_case "Hello foo-bars"`          | `"HelloFooBars"`   |
-| `to_snake_case s:String`                 | `to_snake_case "Hello foo-bars"`           | `"hello_foo_bars"` |
-| `to_screaming_snake_case s:String`       | `to_screaming_snake_case "Hello foo-bars"` | `"HELLO_FOO_BARS"` |
-| `to_kebab_case s:String`                 | `to_kebab_case "Hello foo-bars"`           | `"hello-foo-bars"` |
-| `to_train_case s:String`                 | `to_train_case "Hello foo-bars"`           | `"Hello-Foo-Bars"` |
-| `to_sentence_case s:String`              | `to_sentence_case "Hello foo-bars"`        | `"Hello foo" bars` |
-| `to_title_case s:String`                 | `to_title_case "Hello foo-bars"`           | `"Hello Foo Bars"` |
-| `to_class_case s:String`                 | `to_class_case "Hello foo-bars"`           | `"HelloFooBar"`    |
-| `to_table_case s:String`                 | `to_table_case "Hello foo-bars"`           | `"hello_foo_bars"` |
-| `to_plural s:String`                     | `to_plural "Hello foo-bars"`               | `"bars"`           |
-| `to_singular s:String`                   | `to_singular "Hello foo-bars"`             | `"bar"`            |
-| `trim s:String`                          | `trim " foo "`                             | `"foo"`            |
-| `trim_start s:String`                    | `trim_start " foo "`                       | `"foo "`           |
-| `trim_end s:String`                      | `trim_end " foo "`                         | `" foo"`           |
-| `unquote s:String`                       | `unquote "\"foo\""`                        | `"foo"`            |
-| `enquote symbol:String s:String`         | `enquote "" "foo"`                         | `"\"foo\""`        |
-| `first_non_empty s:String+`              | `first_non_empty "" null "foo" "bar"`      | `"foo"`            |
+| helper signature                         | usage sample                               | sample out            |
+| ---------------------------------------- | ------------------------------------------ | --------------------- |
+| `replace s:String from:String to:String` | `replace "Hello old" "old" "new"`          | `"Hello new"`         |
+| `to_lower_case s:String`                 | `to_lower_case "Hello foo-bars"`           | `"hello foo-bars"`    |
+| `to_upper_case s:String`                 | `to_upper_case "Hello foo-bars"`           | `"HELLO FOO-BARS"`    |
+| `to_camel_case s:String`                 | `to_camel_case "Hello foo-bars"`           | `"helloFooBars"`      |
+| `to_pascal_case s:String`                | `to_pascal_case "Hello foo-bars"`          | `"HelloFooBars"`      |
+| `to_snake_case s:String`                 | `to_snake_case "Hello foo-bars"`           | `"hello_foo_bars"`    |
+| `to_screaming_snake_case s:String`       | `to_screaming_snake_case "Hello foo-bars"` | `"HELLO_FOO_BARS"`    |
+| `to_kebab_case s:String`                 | `to_kebab_case "Hello foo-bars"`           | `"hello-foo-bars"`    |
+| `to_train_case s:String`                 | `to_train_case "Hello foo-bars"`           | `"Hello-Foo-Bars"`    |
+| `to_sentence_case s:String`              | `to_sentence_case "Hello foo-bars"`        | `"Hello foo" bars`    |
+| `to_title_case s:String`                 | `to_title_case "Hello foo-bars"`           | `"Hello Foo Bars"`    |
+| `to_class_case s:String`                 | `to_class_case "Hello foo-bars"`           | `"HelloFooBar"`       |
+| `to_table_case s:String`                 | `to_table_case "Hello foo-bars"`           | `"hello_foo_bars"`    |
+| `to_plural s:String`                     | `to_plural "Hello foo-bars"`               | `"bars"`              |
+| `to_singular s:String`                   | `to_singular "Hello foo-bars"`             | `"bar"`               |
+| `to_foreign_key s:String`                | `to_foreign_key "Hello foo-bars"`          | `"hello_foo_bars_id"` |
+| `demodulize s:String`                    | `demodulize "Test::Foo::Bar"`              | `"Bar"`               |
+| `ordinalize s:String+`                   | `ordinalize "9"`                           | `"9th"`               |
+| `deordinalize s:String+`                 | `deordinalize "9th"`                       | `"9"`                 |
+| `trim s:String`                          | `trim " foo "`                             | `"foo"`               |
+| `trim_start s:String`                    | `trim_start " foo "`                       | `"foo "`              |
+| `trim_end s:String`                      | `trim_end " foo "`                         | `" foo"`              |
+| `unquote s:String`                       | `unquote "\"foo\""`                        | `"foo"`               |
+| `enquote symbol:String s:String`         | `enquote "" "foo"`                         | `"\"foo\""`           |
+| `first_non_empty s:String+`              | `first_non_empty "" null "foo" "bar"`      | `"foo"`               |
 
 ## Http content
 

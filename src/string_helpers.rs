@@ -1,11 +1,11 @@
+use cruet::Inflector;
 use handlebars::{
     handlebars_helper, Context, Handlebars, Helper, HelperDef, RenderContext, RenderError,
     ScopedJson,
 };
-use inflector::Inflector;
 
 #[macro_export]
-macro_rules! handlebars_register_inflector {
+macro_rules! handlebars_register_cruet {
     ($engine:ident, $fct_name:ident) => {
         {
             handlebars_helper!($fct_name: |v: str| v.$fct_name());
@@ -65,18 +65,34 @@ pub fn register(handlebars: &mut Handlebars) {
         handlebars_helper!(replace: |v: str, from: str, to: str| v.replace(from, to));
         handlebars.register_helper("replace", Box::new(replace))
     }
-    handlebars_register_inflector!(handlebars, to_camel_case);
-    handlebars_register_inflector!(handlebars, to_pascal_case);
-    handlebars_register_inflector!(handlebars, to_snake_case);
-    handlebars_register_inflector!(handlebars, to_screaming_snake_case);
-    handlebars_register_inflector!(handlebars, to_kebab_case);
-    handlebars_register_inflector!(handlebars, to_train_case);
-    handlebars_register_inflector!(handlebars, to_sentence_case);
-    handlebars_register_inflector!(handlebars, to_title_case);
-    handlebars_register_inflector!(handlebars, to_class_case);
-    handlebars_register_inflector!(handlebars, to_table_case);
-    handlebars_register_inflector!(handlebars, to_plural);
-    handlebars_register_inflector!(handlebars, to_singular);
+    handlebars_register_cruet!(handlebars, is_class_case);
+    handlebars_register_cruet!(handlebars, to_class_case);
+    handlebars_register_cruet!(handlebars, is_camel_case);
+    handlebars_register_cruet!(handlebars, to_camel_case);
+    handlebars_register_cruet!(handlebars, is_pascal_case);
+    handlebars_register_cruet!(handlebars, to_pascal_case);
+    handlebars_register_cruet!(handlebars, is_snake_case);
+    handlebars_register_cruet!(handlebars, to_snake_case);
+    handlebars_register_cruet!(handlebars, is_screaming_snake_case);
+    handlebars_register_cruet!(handlebars, to_screaming_snake_case);
+    handlebars_register_cruet!(handlebars, is_kebab_case);
+    handlebars_register_cruet!(handlebars, to_kebab_case);
+    handlebars_register_cruet!(handlebars, is_train_case);
+    handlebars_register_cruet!(handlebars, to_train_case);
+    handlebars_register_cruet!(handlebars, is_sentence_case);
+    handlebars_register_cruet!(handlebars, to_sentence_case);
+    handlebars_register_cruet!(handlebars, is_title_case);
+    handlebars_register_cruet!(handlebars, to_title_case);
+    handlebars_register_cruet!(handlebars, is_table_case);
+    handlebars_register_cruet!(handlebars, to_table_case);
+    handlebars_register_cruet!(handlebars, deordinalize);
+    handlebars_register_cruet!(handlebars, ordinalize);
+    handlebars_register_cruet!(handlebars, is_foreign_key);
+    handlebars_register_cruet!(handlebars, to_foreign_key);
+    handlebars_register_cruet!(handlebars, deconstantize);
+    handlebars_register_cruet!(handlebars, demodulize);
+    handlebars_register_cruet!(handlebars, to_plural);
+    handlebars_register_cruet!(handlebars, to_singular);
     {
         handlebars_helper!(quote: |quote_symbol: str, v: str| enquote::enquote(quote_symbol.chars().next().unwrap_or('"'), v));
         handlebars.register_helper("quote", Box::new(quote))
