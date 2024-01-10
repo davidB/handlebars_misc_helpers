@@ -13,7 +13,7 @@ pub struct ReplaceSectionHelper;
 impl HelperDef for ReplaceSectionHelper {
     fn call<'reg: 'rc, 'rc>(
         &self,
-        h: &Helper<'reg, 'rc>,
+        h: &Helper<'rc>,
         hbs: &'reg Handlebars<'reg>,
         ctx: &'rc Context,
         rc: &mut RenderContext<'reg, 'rc>,
@@ -24,7 +24,7 @@ impl HelperDef for ReplaceSectionHelper {
             return Ok(());
         };
 
-        let Some(input) = h.param(0).and_then(|it| it.value().as_str())  else {
+        let Some(input) = h.param(0).and_then(|it| it.value().as_str()) else {
             warn!("`replace_section` helper require an string parameter");
             return Ok(());
         };
@@ -40,7 +40,7 @@ impl HelperDef for ReplaceSectionHelper {
         };
         let Some((before, inner)) = input.split_once(begin) else {
             warn!("Begin region '{begin}' not found in '{input}'");
-            return Ok(())
+            return Ok(());
         };
 
         let Some(end) = h.hash_get("end").and_then(|it| it.value().as_str()) else {
@@ -49,7 +49,7 @@ impl HelperDef for ReplaceSectionHelper {
         };
         let Some((_, after)) = inner.split_once(end) else {
             warn!("End region '{end}' not found in '{inner}'");
-            return Ok(())
+            return Ok(());
         };
 
         out.write(before)?;

@@ -1,7 +1,5 @@
 use crate::outputs::StringOutput;
-use handlebars::{
-    Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderError, Renderable,
-};
+use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext, Renderable};
 use jsonnet::JsonnetVm;
 use thiserror::Error;
 
@@ -12,7 +10,7 @@ enum JsonnetError {
 }
 
 fn jsonnet_block<'reg, 'rc>(
-    h: &Helper<'reg, 'rc>,
+    h: &Helper<'rc>,
     r: &'reg Handlebars,
     ctx: &'rc Context,
     rc: &mut RenderContext<'reg, 'rc>,
@@ -40,19 +38,15 @@ fn jsonnet_block<'reg, 'rc>(
         let s = vm
             .evaluate_snippet("snippet", &input)
             .map_err(|e| {
-                RenderError::from_error(
-                    "jsonnet_block",
-                    JsonnetError::EvaluateError {
-                        source_str: format!("{:?}", e),
-                    },
-                )
+                crate::to_nested_error(JsonnetError::EvaluateError {
+                    source_str: format!("{:?}", e),
+                })
             })?
             .to_string();
         s
     };
 
-    out.write(&res)
-        .map_err(|e| RenderError::from_error("jsonnet_block", e))
+    out.write(&res).map_err(crate::to_nested_error)
 }
 
 pub fn register(handlebars: &mut Handlebars) {

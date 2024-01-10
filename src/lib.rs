@@ -9,7 +9,6 @@
 
 use handlebars::no_escape;
 use handlebars::Handlebars;
-use thiserror::Error;
 
 pub mod assign_helpers;
 pub mod env_helpers;
@@ -24,17 +23,6 @@ pub mod outputs;
 pub mod path_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
-pub mod region_helpers;
-
-#[derive(Debug, Error)]
-enum HelperError {
-    #[error("missing param {position} '{name}' of '{helper_signature}'")]
-    MissingParameter {
-        position: usize,
-        name: String,
-        helper_signature: String,
-    },
-}
 
 pub fn new_hbs<'reg>() -> Handlebars<'reg> {
     let mut handlebars = Handlebars::new();
@@ -62,6 +50,17 @@ pub fn register(handlebars: &mut Handlebars) {
     assign_helpers::register(handlebars);
     file_helpers::register(handlebars);
     region_helpers::register(handlebars);
+}
+
+pub(crate) fn to_nested_error<E>(cause: E) -> handlebars::RenderError
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    handlebars::RenderErrorReason::NestedError(Box::new(cause)).into()
+}
+
+pub fn to_other_error<T: AsRef<str>>(desc: T) -> handlebars::RenderError {
+    handlebars::RenderErrorReason::Other(desc.as_ref().to_string()).into()
 }
 
 #[cfg(test)]
