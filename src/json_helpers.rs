@@ -188,7 +188,7 @@ fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, Jso
     })
 }
 
-fn find_data_format<'reg>(h: &Helper<'reg>) -> Result<DataFormat, RenderError> {
+fn find_data_format(h: &Helper) -> Result<DataFormat, RenderError> {
     let param = h
         .hash_get("format")
         .and_then(|v| v.value().as_str())
@@ -196,7 +196,7 @@ fn find_data_format<'reg>(h: &Helper<'reg>) -> Result<DataFormat, RenderError> {
     DataFormat::from_str(param).map_err(crate::to_nested_error)
 }
 
-fn find_str_param<'reg>(pos: usize, h: &Helper<'reg>) -> Result<String, RenderError> {
+fn find_str_param(pos: usize, h: &Helper) -> Result<String, RenderError> {
     h.param(pos)
         .ok_or_else(|| crate::to_other_error(format!("param {} (the string) not found", pos)))
         // .and_then(|v| {
