@@ -14,7 +14,7 @@ fn http_get_fct<T: AsRef<str>>(url: T) -> Result<String, reqwest::Error> {
     reqwest::blocking::get(url.as_ref())?.text()
 }
 
-#[cfg(all(feature = "http_reqwest", feature = "http_attohttpc"))]
+#[cfg(any(feature = "http_reqwest", feature = "http_attohttpc"))]
 pub fn register(handlebars: &mut Handlebars) {
     {
         handlebars_helper!(http_get: |v: str| http_get_fct(v).map_err(crate::to_nested_error)?);

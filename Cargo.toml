@@ -51,10 +51,9 @@ unindent = "0.2"
 
 [features]
 default = ["string", "http_attohttpc", "json", "jsonnet"]
-string = ["dep:Inflector", "dep:enquote"]
-http_attohttpc = ["dep:attohttpc", "http_fct"]
-http_reqwest = ["dep:reqwest", "http_fct"]
-http_fct = []
+string = ["dep:Inflector", "dep:enquote", "jsontype"]
+http_attohttpc = ["dep:attohttpc"]
+http_reqwest = ["dep:reqwest"]
 json = [
     "dep:lazy_static",
     "dep:jmespath",
@@ -63,4 +62,5 @@ json = [
     "dep:serde_yaml",
     "dep:toml",
 ]
+jsontype = ["dep:serde_json"]
 jsonnet = ["dep:jsonnet-rs"]
