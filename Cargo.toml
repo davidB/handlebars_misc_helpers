@@ -21,7 +21,7 @@ exclude = [
 ]
 
 [dependencies]
-attohttpc = { version = "^0.26", optional = true, default-features = false, features = [
+attohttpc = { version = "^0.27", optional = true, default-features = false, features = [
     "compress",
     "tls-rustls-webpki-roots",
 ] }
