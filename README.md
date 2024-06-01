@@ -62,7 +62,7 @@ jsonnet = ["dep:jsonnet-rs"]
   - [Helpers](#helpers)
   - [Blocks](#blocks)
   - [Edition via jsonnet](#edition-via-jsonnet)
-- [Assign](#assign)
+- [Assign, set](#assign-set)
 - [Replace section](#replace-section)
 
 <!-- /TOC -->
@@ -329,17 +329,23 @@ v {
 </tr>
 </table>
 
-## Assign
+## Assign, set
 
 Helper able to assign (to set) a variable to use later in the template.
 
-| usage                                       | output        |
-| ------------------------------------------- | ------------- |
-| `{{ assign "foo" "{}" }}`                   | ``            |
-| `{{ assign "foo" "{}" }}{{ foo }}`          | `{}`          |
-| `{{ assign "foo" "hello world" }}{{ foo }}` | `hello world` |
-| `{{ assign "foo" {} }}{{ foo }}`            | `[object]`    |
-| `{{ assign "foo" {"bar": 33} }}{{ foo }}`   | `[object]`    |
+⚠️ `assign` is deprecated replaced by `set` (more compact and allow multi assignment in one call)
+
+| usage                                                             | output          |
+| ----------------------------------------------------------------- | --------------- |
+| `{{ assign "foo" "hello world" }}{{ foo }}`                       | `hello world`   |
+| `{{ set foo="{}" }}`                                              | ``              |
+| `{{ set foo="{}" }}{{ foo }}`                                     | `{}`            |
+| `{{ set foo="hello world" }}{{ foo }}`                            | `hello world`   |
+| `{{ set foo={} }}{{ foo }}`                                       | `[object]`      |
+| `{{ set foo={"bar": 33} }}{{ foo }}`                              | `[object]`      |
+| `{{ set foo={"bar": 33} }}{{ foo.bar }}`                          | `33`            |
+| `{{ set foo="world" bar="hello" }}>{{ bar }} {{ foo }}<`          | `>hello world<` |
+| `{{ set foo="world" }}{{ set bar="hello" }}>{{ bar }} {{ foo }}<` | `>hello world<` |
 
 ## Replace section
 

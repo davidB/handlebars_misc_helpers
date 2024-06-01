@@ -1,10 +1,6 @@
-use handlebars::Context;
-use handlebars::Handlebars;
-use handlebars::Helper;
-use handlebars::HelperResult;
-use handlebars::Output;
-use handlebars::RenderContext;
-use handlebars::RenderErrorReason;
+use handlebars::{
+    Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderErrorReason,
+};
 
 fn assign_fct(
     h: &Helper,
@@ -23,17 +19,34 @@ fn assign_fct(
         .map(|v| v.value())
         .cloned()
         .ok_or(RenderErrorReason::ParamNotFoundForIndex("assign", 1))?;
-    let mut ctx = ctx.clone();
-    match ctx.data_mut() {
-        serde_json::value::Value::Object(m) => m.insert(name.to_owned(), value),
-        _ => None,
-    };
+    let mut ctx = rc.context().as_deref().unwrap_or(ctx).clone();
+    if let Some(ref mut m) = ctx.data_mut().as_object_mut() {
+        m.insert(name.to_owned(), value);
+    }
+    rc.set_context(ctx);
+    Ok(())
+}
+
+fn set_fct(
+    h: &Helper,
+    _: &Handlebars,
+    ctx: &Context,
+    rc: &mut RenderContext,
+    _: &mut dyn Output,
+) -> HelperResult {
+    let mut ctx = rc.context().as_deref().unwrap_or(ctx).clone();
+    if let Some(ref mut m) = ctx.data_mut().as_object_mut() {
+        for (k, v) in h.hash() {
+            m.insert(k.to_string(), v.value().clone());
+        }
+    }
     rc.set_context(ctx);
     Ok(())
 }
 
 pub fn register(handlebars: &mut Handlebars) {
-    handlebars.register_helper("assign", Box::new(assign_fct))
+    handlebars.register_helper("assign", Box::new(assign_fct));
+    handlebars.register_helper("set", Box::new(set_fct));
 }
 
 #[cfg(test)]
@@ -54,6 +67,33 @@ mod tests {
             (
                 r##"{{ assign "foo" "hello world" }}{{ foo }}"##,
                 r##"hello world"##,
+            ),
+            (
+                r##"{{ assign "foo" "world" }}{{ assign "bar" "hello" }}>{{ bar }} {{ foo }}<"##,
+                r##">hello world<"##,
+            )
+        ]
+    }
+
+    #[test]
+    fn test_helper_set() -> Result<(), Box<dyn Error>> {
+        assert_renders![
+            (r##"{{ set foo="{}" }}"##, r##""##),
+            (r##"{{ set foo="{}" }}{{ foo }}"##, r##"{}"##),
+            (r##"{{ set foo={} }}{{ foo }}"##, r##"[object]"##),
+            (r##"{{ set foo={"bar": 33} }}{{ foo }}"##, r##"[object]"##,),
+            (r##"{{ set foo={"bar": 33} }}{{ foo.bar }}"##, r##"33"##,),
+            (
+                r##"{{ set foo="hello world" }}{{ foo }}"##,
+                r##"hello world"##,
+            ),
+            (
+                r##"{{ set foo="world" bar="hello" }}>{{ bar }} {{ foo }}<"##,
+                r##">hello world<"##,
+            ),
+            (
+                r##"{{ set foo="world" }}{{ set bar="hello" }}>{{ bar }} {{ foo }}<"##,
+                r##">hello world<"##,
             )
         ]
     }
