@@ -9,6 +9,7 @@ enum JsonnetError {
     EvaluateError { source_str: String },
 }
 
+#[allow(clippy::let_and_return)]
 fn jsonnet_block<'reg, 'rc>(
     h: &Helper<'rc>,
     r: &'reg Handlebars,

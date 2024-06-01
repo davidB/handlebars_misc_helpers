@@ -174,6 +174,7 @@ impl DataFormat {
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn json_query<T: Serialize, E: AsRef<str>>(expr: E, data: T) -> Result<Json, JsonError> {
     // let data = data.to_jmespath();
     let res = jmespath::compile(expr.as_ref())
