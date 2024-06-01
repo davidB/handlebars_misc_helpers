@@ -30,12 +30,12 @@ pub fn register(handlebars: &mut Handlebars) {
 // mod tests {
 //     use super::*;
 //     // use crate::tests::assert_renders;
-//     use spectral::prelude::*;
+//     use pretty_assertions::assert_eq;
 //     use std::error::Error;
 
 //     #[test]
 //     fn try_http_get_fct() -> Result<(), Box<dyn Error>> {
-//         assert_that!(http_get_fct("https://www.gitignore.io/api/text")?).is_equal_to(
+//         assert_eq!(http_get_fct("https://www.gitignore.io/api/text")?,
 //             r#"
 // # Created by https://www.toptal.com/developers/gitignore/api/text
 // # Edit at https://www.toptal.com/developers/gitignore?templates=text

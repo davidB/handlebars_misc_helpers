@@ -330,7 +330,7 @@ mod tests {
     use super::*;
     use crate::assert_renders;
     use crate::tests::normalize_nl;
-    use spectral::prelude::*;
+    use pretty_assertions::assert_eq;
     use std::error::Error;
 
     #[test]
@@ -370,7 +370,7 @@ mod tests {
     fn test_search_object_field() -> Result<(), Box<dyn Error>> {
         let json: Json = serde_json::from_str(r##"{"foo":{"bar":{"baz":true}}}"##)?;
         let result = json_query("foo.bar.baz", json)?;
-        assert_that!(result).is_equal_to(Json::Bool(true));
+        assert_eq!(result, Json::Bool(true));
         Ok(())
     }
 
@@ -379,7 +379,7 @@ mod tests {
         for v in ["{}", "[]", "null", "\"\""] {
             let json: Json = serde_json::from_str(v)?;
             let result = json_query("foo.bar.baz", json)?;
-            assert_that!(result).is_equal_to(Json::Null);
+            assert_eq!(result, Json::Null);
         }
         Ok(())
     }
@@ -387,7 +387,7 @@ mod tests {
     fn assert_data_format_write_eq_read(f: DataFormat, data: &str) -> Result<(), Box<dyn Error>> {
         let data = normalize_nl(data);
         let actual = normalize_nl(&f.write_string(&f.read_string(&data)?)?);
-        assert_that!(&actual).is_equal_to(data);
+        assert_eq!(actual, data);
         Ok(())
     }
 

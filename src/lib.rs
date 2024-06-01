@@ -73,7 +73,7 @@ pub fn to_other_error<T: AsRef<str>>(desc: T) -> handlebars::RenderError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use spectral::prelude::*;
+    use pretty_assertions::assert_eq;
     use std::collections::HashMap;
     use std::error::Error;
     use unindent::unindent;
@@ -87,9 +87,12 @@ mod tests {
         let hbs = new_hbs();
         for sample in helper_expected {
             let tmpl = format!("{{{{ {} var}}}}", sample.0);
-            assert_that!(hbs.render_template(&tmpl, &vs)?)
-                .named(sample.0)
-                .is_equal_to(sample.1.to_owned());
+            assert_eq!(
+                hbs.render_template(&tmpl, &vs)?,
+                sample.1.to_owned(),
+                "name: {}",
+                sample.0
+            );
         }
         Ok(())
     }
@@ -103,7 +106,6 @@ mod tests {
     macro_rules! assert_renders {
         ($($arg:expr),+$(,)?) => {{
             use std::collections::HashMap;
-            //use spectral::prelude::*;
             use pretty_assertions::assert_eq;
             let vs: HashMap<String, String> = HashMap::new();
             let mut hbs = $crate::new_hbs();
@@ -140,7 +142,7 @@ mod tests {
         let hbs = new_hbs();
         let tmpl = r#"{{ to_upper_case (to_singular "Hello foo-bars")}}"#.to_owned();
         let actual = hbs.render_template(&tmpl, &vs)?;
-        assert_that!(&actual).is_equal_to("BAR".to_string());
+        assert_eq!(&actual, "BAR");
         Ok(())
     }
 
