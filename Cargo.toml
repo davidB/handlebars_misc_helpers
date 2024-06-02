@@ -41,7 +41,7 @@ serde_json = { version = "^1", optional = true }
 serde_yaml = { version = "^0.9", optional = true }
 thiserror = "1.0"
 toml = { version = "^0.8", optional = true, features = ["preserve_order"] }
-uuid = { verison = "^1.8", optional = true, features = ["v4", "v7"] }
+uuid = { verison = "1.8", optional = true, features = ["v4", "v7"] }
 
 [dev-dependencies]
 tempfile = "3.1"
