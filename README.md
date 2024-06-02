@@ -35,9 +35,7 @@ see [Handlebars templating language](https://handlebarsjs.com/)
 To not "import" useless dependencies, use crate's features:
 
 ```toml
-[features]
-default = ["string", "http_attohttpc", "json", "jsonnet"]
-string = ["dep:cruet", "dep:enquote", "jsontype"]
+default = ["string", "http_attohttpc", "json", "jsonnet", "regex"]
 http_attohttpc = ["dep:attohttpc"]
 http_reqwest = ["dep:reqwest"]
 json = [
@@ -47,13 +45,16 @@ json = [
     "dep:serde_yaml",
     "dep:toml",
 ]
-jsontype = ["dep:serde_json"]
 jsonnet = ["dep:jsonnet-rs"]
+jsontype = ["dep:serde_json"]
+regex = ["dep:regex"]
+string = ["dep:cruet", "dep:enquote", "jsontype"]
 ```
 
 <!-- TOC depthFrom:2 -->
 
 - [String transformation](#string-transformation)
+- [Regular expression](#regular-expression)
 - [Http content](#http-content)
 - [Path extraction](#path-extraction)
 - [File](#file)
@@ -96,6 +97,16 @@ jsonnet = ["dep:jsonnet-rs"]
 | `unquote s:String`                       | `unquote "\"foo\""`                        | `"foo"`               |
 | `enquote symbol:String s:String`         | `enquote "" "foo"`                         | `"\"foo\""`           |
 | `first_non_empty s:String+`              | `first_non_empty "" null "foo" "bar"`      | `"foo"`               |
+
+## Regular expression
+
+| usage                                     | output                     |
+| ----------------------------------------- | -------------------------- |
+| `{{ regex_is_match  pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" }}`            | `true` |
+| `{{#if (regex_is_match pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}ok{{/if}}` | `ok`               |
+| `{{ regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" }}` | `[object]` |
+| `{{ json_to_str( regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}` | `{"_0":"today","_1":"t","_2":"o","_3":"y","first":"t","last":"y"}` |
+| `{{ set captures=( regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}{{ captures.last }}` | `y` |
 
 ## Http content
 

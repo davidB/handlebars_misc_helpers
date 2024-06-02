@@ -82,6 +82,10 @@ mod tests {
             (r##"{{ set foo="{}" }}{{ foo }}"##, r##"{}"##),
             (r##"{{ set foo={} }}{{ foo }}"##, r##"[object]"##),
             (r##"{{ set foo={"bar": 33} }}{{ foo }}"##, r##"[object]"##,),
+            (
+                r##"{{ set foo={"bar": 33} }}{{ json_to_str foo }}"##,
+                r##"{"bar":33}"##,
+            ),
             (r##"{{ set foo={"bar": 33} }}{{ foo.bar }}"##, r##"33"##,),
             (
                 r##"{{ set foo="hello world" }}{{ foo }}"##,
@@ -94,7 +98,8 @@ mod tests {
             (
                 r##"{{ set foo="world" }}{{ set bar="hello" }}>{{ bar }} {{ foo }}<"##,
                 r##">hello world<"##,
-            )
+            ),
+            (r##"{{ set foo=(eq 12 12) }}{{ foo }}"##, r##"true"##,)
         ]
     }
 }

@@ -22,6 +22,8 @@ pub mod json_helpers;
 pub mod jsonnet_helpers;
 pub mod outputs;
 pub mod path_helpers;
+#[cfg(feature = "regex")]
+pub mod regex_helpers;
 #[cfg(feature = "jsontype")]
 pub mod region_helpers;
 #[cfg(feature = "string")]
@@ -55,6 +57,8 @@ pub fn register(handlebars: &mut Handlebars) {
     file_helpers::register(handlebars);
     #[cfg(feature = "jsontype")]
     region_helpers::register(handlebars);
+    #[cfg(feature = "regex")]
+    regex_helpers::register(handlebars);
 }
 
 #[allow(dead_code)]
