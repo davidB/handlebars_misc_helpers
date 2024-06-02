@@ -28,6 +28,8 @@ pub mod regex_helpers;
 pub mod region_helpers;
 #[cfg(feature = "string")]
 pub mod string_helpers;
+#[cfg(feature = "uuid")]
+pub mod uuid_helpers;
 
 pub fn new_hbs<'reg>() -> Handlebars<'reg> {
     let mut handlebars = Handlebars::new();
@@ -59,6 +61,8 @@ pub fn register(handlebars: &mut Handlebars) {
     region_helpers::register(handlebars);
     #[cfg(feature = "regex")]
     regex_helpers::register(handlebars);
+    #[cfg(feature = "uuid")]
+    uuid_helpers::register(handlebars);
 }
 
 #[allow(dead_code)]

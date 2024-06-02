@@ -1,4 +1,7 @@
-use handlebars::{Context, Handlebars, Helper, HelperDef, RenderContext, RenderError, ScopedJson};
+use handlebars::{
+    Context, Handlebars, Helper, HelperDef, RenderContext, RenderError, RenderErrorReason,
+    ScopedJson,
+};
 use regex::Regex;
 
 #[allow(non_camel_case_types)]
@@ -12,14 +15,16 @@ impl HelperDef for regex_captures_fct {
         _: &'rc Context,
         _: &mut RenderContext<'reg, 'rc>,
     ) -> Result<ScopedJson<'reg>, RenderError> {
-        let on = h
-            .hash_get("on")
-            .and_then(|v| v.value().as_str())
-            .unwrap_or_default();
+        let on = h.hash_get("on").and_then(|v| v.value().as_str()).ok_or(
+            RenderErrorReason::ParamNotFoundForName("regex_captures", "on".to_string()),
+        )?;
         let pattern = h
             .hash_get("pattern")
             .and_then(|v| v.value().as_str())
-            .unwrap_or_default();
+            .ok_or(RenderErrorReason::ParamNotFoundForName(
+                "regex_captures",
+                "pattern".to_string(),
+            ))?;
         let re = Regex::new(pattern).map_err(|err| crate::to_other_error(err.to_string()))?;
         if let Some(caps) = re.captures(on) {
             let collected = re
@@ -61,14 +66,17 @@ impl HelperDef for regex_is_match_fct {
         _: &'rc Context,
         _: &mut RenderContext<'reg, 'rc>,
     ) -> Result<ScopedJson<'reg>, RenderError> {
-        let on = h
-            .hash_get("on")
-            .and_then(|v| v.value().as_str())
-            .unwrap_or_default();
+        let on = h.hash_get("on").and_then(|v| v.value().as_str()).ok_or(
+            RenderErrorReason::ParamNotFoundForName("regex_is_match", "on".to_string()),
+        )?;
+
         let pattern = h
             .hash_get("pattern")
             .and_then(|v| v.value().as_str())
-            .unwrap_or_default();
+            .ok_or(RenderErrorReason::ParamNotFoundForName(
+                "regex_is_match",
+                "pattern".to_string(),
+            ))?;
         let re = Regex::new(pattern).map_err(|err| crate::to_other_error(err.to_string()))?;
         Ok(ScopedJson::Derived(serde_json::Value::Bool(
             re.is_match(on),

@@ -55,6 +55,7 @@ string = ["dep:cruet", "dep:enquote", "jsontype"]
 
 - [String transformation](#string-transformation)
 - [Regular expression](#regular-expression)
+- [UUID](#uuid)
 - [Http content](#http-content)
 - [Path extraction](#path-extraction)
 - [File](#file)
@@ -100,13 +101,22 @@ string = ["dep:cruet", "dep:enquote", "jsontype"]
 
 ## Regular expression
 
-| usage                                     | output                     |
-| ----------------------------------------- | -------------------------- |
-| `{{ regex_is_match  pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" }}`            | `true` |
-| `{{#if (regex_is_match pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}ok{{/if}}` | `ok`               |
-| `{{ regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" }}` | `[object]` |
-| `{{ json_to_str( regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}` | `{"_0":"today","_1":"t","_2":"o","_3":"y","first":"t","last":"y"}` |
-| `{{ set captures=( regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}{{ captures.last }}` | `y` |
+| usage                                                                                                                    | output                                                             |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `{{ regex_is_match  pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" }}`                                    | `true`                                                             |
+| `{{#if (regex_is_match pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}ok{{/if}}`                      | `ok`                                                               |
+| `{{ regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" }}`                                     | `[object]`                                                         |
+| `{{ json_to_str( regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}`                      | `{"_0":"today","_1":"t","_2":"o","_3":"y","first":"t","last":"y"}` |
+| `{{ set captures=( regex_captures pattern="(?<first>\\w)(\\w)(?:\\w)\\w(?<last>\\w)" on="today" ) }}{{ captures.last }}` | `y`                                                                |
+
+## UUID
+
+| usage                     | output                                 |
+| ------------------------- | -------------------------------------- |
+| `{{ uuid_new_v4 }}`       | `6db4d8a7-8117-4b72-9dbc-988e6ee2a6e3` |
+| `{{ len (uuid_new_v4) }}` | `36`                                   |
+| `{{ uuid_new_v7 }}`       | `94d7bb75-9b16-40dd-878d-5fbb37b8ae2c` |
+| `{{ len (uuid_new_v7) }}` | `36`                                   |
 
 ## Http content
 

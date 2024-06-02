@@ -41,6 +41,7 @@ serde_json = { version = "^1", optional = true }
 serde_yaml = { version = "^0.9", optional = true }
 thiserror = "1.0"
 toml = { version = "^0.8", optional = true, features = ["preserve_order"] }
+uuid = { verison = "^1.8", optional = true, features = ["v4", "v7"] }
 
 [dev-dependencies]
 tempfile = "3.1"
@@ -49,7 +50,7 @@ similar-asserts = "1.4"
 unindent = "0.2"
 
 [features]
-default = ["string", "http_attohttpc", "json", "jsonnet", "regex"]
+default = ["string", "http_attohttpc", "json", "jsonnet", "regex", "uuid"]
 http_attohttpc = ["dep:attohttpc"]
 http_reqwest = ["dep:reqwest"]
 json = [
@@ -63,3 +64,4 @@ jsonnet = ["dep:jsonnet-rs"]
 jsontype = ["dep:serde_json"]
 regex = ["dep:regex"]
 string = ["dep:cruet", "dep:enquote", "jsontype"]
+uuid = ["dep:uuid"]
