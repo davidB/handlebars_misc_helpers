@@ -35,7 +35,7 @@ see [Handlebars templating language](https://handlebarsjs.com/)
 To not "import" useless dependencies, use crate's features:
 
 ```toml
-default = ["string", "http_attohttpc", "json", "jsonnet", "regex"]
+default = ["string", "http_attohttpc", "json", "jsonnet", "regex", "uuid"]
 http_attohttpc = ["dep:attohttpc"]
 http_reqwest = ["dep:reqwest"]
 json = [
@@ -49,6 +49,7 @@ jsonnet = ["dep:jsonnet-rs"]
 jsontype = ["dep:serde_json"]
 regex = ["dep:regex"]
 string = ["dep:cruet", "dep:enquote", "jsontype"]
+uuid = ["dep:uuid"]
 ```
 
 <!-- TOC depthFrom:2 -->
