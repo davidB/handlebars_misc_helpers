@@ -1,6 +1,6 @@
 [package]
 name = "handlebars_misc_helpers"
-version = "0.16.0"
+version = "0.16.1"
 authors = ["David Bernard"]
 edition = "2021"
 description = "A collection of helpers for handlebars (rust) to manage string, json, yaml, toml, path, file, http request."
