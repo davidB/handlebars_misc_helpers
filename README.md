@@ -8,12 +8,12 @@
 [![Actions Status](https://github.com/davidB/handlebars_misc_helpers/workflows/ci-flow/badge.svg)](https://github.com/davidB/handlebars_misc_helpers/actions)
 [![test coverage](https://codecov.io/gh/davidB/handlebars_misc_helpers/branch/master/graph/badge.svg)](https://codecov.io/gh/davidB/handlebars_misc_helpers)
 
-A collection of helpers for handlebars (rust) to manage string, json, yaml, toml, path, file, http request.
+A collection of helpers for handlebars (rust) to manage String, JSON, YAML, TOML, path, file, and HTTP requests.
 
-Helpers extend the template to generate or to transform content.
+Helpers extend the template to generate or transform content.
 Few helpers are included, but if you need more helpers, ask via an issue or a PR.
 
-To use an helper:
+To use a helper:
 
 ```handlebars
 // arguments are space separated
@@ -32,7 +32,7 @@ To chain helpers, use parenthesis:
 
 see [Handlebars templating language](https://handlebarsjs.com/)
 
-To not "import" useless dependencies, use crate's features:
+To not "import" useless dependencies, use the crate's features:
 
 ```toml
 default = ["string", "http_attohttpc", "json", "jsonnet", "regex", "uuid"]
@@ -57,14 +57,14 @@ uuid = ["dep:uuid"]
 - [String transformation](#string-transformation)
 - [Regular expression](#regular-expression)
 - [UUID](#uuid)
-- [Http content](#http-content)
+- [HTTP content](#http-content)
 - [Path extraction](#path-extraction)
 - [File](#file)
 - [Environment variable](#environment-variable)
 - [JSON \& YAML \& TOML](#json--yaml--toml)
   - [Helpers](#helpers)
   - [Blocks](#blocks)
-  - [Edition via jsonnet](#edition-via-jsonnet)
+  - [Edition via Jsonnet](#edition-via-jsonnet)
 - [Assign, set](#assign-set)
 - [Replace section](#replace-section)
 
@@ -119,9 +119,9 @@ uuid = ["dep:uuid"]
 | `{{ uuid_new_v7 }}`       | `94d7bb75-9b16-40dd-878d-5fbb37b8ae2c` |
 | `{{ len (uuid_new_v7) }}` | `36`                                   |
 
-## Http content
+## HTTP content
 
-Helper able to render body response from an http request.
+The helpers can render the body's response from an HTTP request.
 
 | helper signature                | usage sample                           |
 | ------------------------------- | -------------------------------------- |
@@ -151,13 +151,13 @@ Helper to read file content.
 
 ## Environment variable
 
-Helper able to get environment variables.
+The helper can get environment variables.
 
 | helper_name | usage            |
 | ----------- | ---------------- |
 | env_var     | `env_var "HOME"` |
 
-Specials environment variables are predefined (some of them come from [`std::env::consts` - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
+Some special environment variables are predefined (some of them come from [`std::env::consts` - Rust](https://doc.rust-lang.org/std/env/consts/index.html)):
 
 <table>
     <thead>
@@ -235,15 +235,15 @@ Specials environment variables are predefined (some of them come from [`std::env
 
 ### Helpers
 
-- `json_query query:String data:Json`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`.
-- `json_str_query query:String data:String`: Helper able to extract information from json using [JMESPath](http://jmespath.org/) syntax for `query`, data follows the requested `format`.
-- `json_to_str data:Json`: convert a json data into a string following the requested `format`.
-- `str_to_json data:String`: convert(parse) a string into a json following the requested `format`.
+- `json_query query:String data:Json`: Helper able to extract information from JSON using [JMESPath](http://jmespath.org/) syntax for `query`.
+- `json_str_query query:String data:String`: Helper able to extract information from JSON using [JMESPath](http://jmespath.org/) syntax for `query`, data follows the requested `format`.
+- `json_to_str data:Json`: convert JSON data into a string following the requested `format`.
+- `str_to_json data:String`: convert(parse) a string into a JSON following the requested `format`.
 
 The optional requested `format`, is the format of the string with data:
 
 - `"json"` (default if omitted)
-- `"json_pretty"` json with indentation,...
+- `"json_pretty"` JSON with indentation,...
 - `"yaml"`
 - `"toml"`
 - `"toml_pretty"`
@@ -315,17 +315,17 @@ foo:
 </tr>
 </table>
 
-Note: YAML & TOML content are used as input and output format for json data. So capabilities are limited to what json support (eg. no date-time type like in TOML).
+Note: YAML & TOML content are used as input and output formats for JSON data. So capabilities are limited to what JSON support (eg. no date-time type like in TOML).
 
-### Edition via jsonnet
+### Edition via Jsonnet
 
-For more advanced edition of json, you can use jsonnet.
+For a more advanced edition of JSON, you can use Jsonnet.
 
 > A data templating language for app and tool developers
 
-- See the doc of [jsonnet](https://jsonnet.org/learning/tutorial.html) for more samples, syntax info,...
+- See the doc of [jsonnet](https://jsonnet.org/learning/tutorial.html) for more samples, and syntax info,...
 - This block can be combined with conversion helper/block for YAML & TOML to provide edition capabilities for those format
-- the output should a valid json, except if `string_output = false` is set as parameter of the block.
+- the output should be a valid JSON, except if `string_output = false` is set as a parameter of the block.
 
 <table>
 <tr>
@@ -353,9 +353,9 @@ v {
 
 ## Assign, set
 
-Helper able to assign (to set) a variable to use later in the template.
+The helpers can assign a variable to use later in the template.
 
-⚠️ `assign` is deprecated replaced by `set` (more compact and allow multi assignment in one call)
+⚠️ `assign` is deprecated and replaced by `set` (more compact and allows multiple assignments in one call)
 
 | usage                                                             | output          |
 | ----------------------------------------------------------------- | --------------- |
@@ -371,7 +371,7 @@ Helper able to assign (to set) a variable to use later in the template.
 
 ## Replace section
 
-Helper able to replace a section delimited by a boundary.
+This helper can replace a section delimited by a boundary.
 
 For example with this template:
 
@@ -381,7 +381,7 @@ This is the new content of the block
 {{~/replace_section}}
 ```
 
-And the `content` having
+The `content` having
 
 ```html
 <!DOCTYPE html>
