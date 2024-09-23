@@ -1,0 +1,6 @@
+[tools]
+rust = '1.80.0'
+# binstall = "1.10"
+
+# [plugins]
+# binstall = "https://github.com/davidB/asdf-cargo-binstall"

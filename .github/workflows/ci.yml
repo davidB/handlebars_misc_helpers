@@ -18,29 +18,21 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os.imageName }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust_toolchain: ["stable"]
         os:
-          - imageName: ubuntu-latest
-            profile_rustup: default
-          - imageName: "macOS-latest"
-            profile_rustup: minimal
-          - imageName: windows-latest
-            profile_rustup: minimal
+          - "ubuntu-latest"
+          - "macOS-latest"
+          - "windows-latest"
     env:
       CARGO_TERM_COLOR: always
       RUST_BACKTRACE: full
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
     steps:
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust_toolchain }}
-          override: true
-          profile: ${{matrix.os.profile_rustup}}
       - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
       - uses: mozilla-actions/sccache-action@v0.0.5
       - run: cargo clippy
       - run: cargo test
