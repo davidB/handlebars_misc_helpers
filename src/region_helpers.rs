@@ -100,10 +100,7 @@ mod tests {
         let mut hbs = new_hbs();
         hbs.register_template_string(
             "test",
-            r#"{{#replace_section  begin="<!-- #region head-->" end="<!-- #endregion head -->" content }}
-
-    This is the new content of the block
-    {{/replace_section}}"#,
+            r#"{{#replace_section  begin="<!-- #region head-->" end="<!-- #endregion head -->" content }}This is the new content of the block{{/replace_section}}"#,
         )?;
 
         let result = hbs.render("test", &data)?;
@@ -120,9 +117,7 @@ mod tests {
     <title>Document</title>
     </head>
     <body>
-    <!-- #region head-->
-    This is the new content of the block
-    <!-- #endregion head -->
+    <!-- #region head-->This is the new content of the block<!-- #endregion head -->
     </body>
 </html>
 "#,
