@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: mozilla-actions/sccache-action@v0.0.5
+      - uses: mozilla-actions/sccache-action@v0.0.6
       - run: cargo clippy --workspace --all-features --no-deps --all-targets -- --deny warnings
       - run: cargo test --all-features
       - run: ${SCCACHE_PATH} --show-stats
